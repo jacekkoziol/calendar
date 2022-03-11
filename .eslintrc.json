@@ -1,0 +1,23 @@
+{
+  "root": true,
+  "ignorePatterns": [
+    "dist/**/*"
+  ],
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "extends": [
+    "google"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "parserOptions": { "project": ["./tsconfig.json"] }
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
+  "rules": {
+  }
+}
