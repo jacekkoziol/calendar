@@ -34,12 +34,15 @@ export interface ICalendarDataMonth {
   days: ICalendarDataDay[];
 }
 
-
+/**
+ * TODO:: add params description
+ */
 export interface ICalendarDataConfiguration {
   startWeekWithDay?: number;
   dictionaryMonths?: ICalendarDataMonthsNamesDictionary;
   dictionaryWeekdays?: ICalendarDataWeekdaysDictionary;
-  fillWeekMissingDaysWithDaysFromAdjacentMonths?: boolean
+  fillWeekMissingDaysWithDaysFromAdjacentMonths?: boolean;
+  weekNumberAdjust?: boolean;
 }
 
 // Dictionaries
@@ -127,13 +130,67 @@ export class CalendarData {
   }
 
   /**
+   *
+   * @param {number} monthIndex The number of the month (0-based index, so: `0` => `January`, `11` => `December`)
+   * @param {number} year The particular year, by default if not passed the Current Year will be used
+   * @param {number} weekStartsFromDayIndex The day from which the week should be started (0-based index, by default `0` => `Sunday`)
+   * @param {boolean} fillMissingDaysWithDaysFromAdjacentMonths Fill the first and last week of the month with days
+   * from previous and next month, otherwise with `null` (Default `false`)
+   * @return {ICalendarDataMonth}
+   */
+  public createMonthAsWeeks(
+    monthIndex: number,
+    year: number,
+    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
+    fillMissingDaysWithDaysFromAdjacentMonths: boolean = this.fillWeekMissingDaysWithDaysFromAdjacentMonths,
+  ): ICalendarDataMonth {
+    const tmpDate: Date = new Date(year, monthIndex, 1);
+    // We need to get month index and year from the date
+    // to be sure that the data is correct in case the input monthIndex is out o the range 0-11
+    const verifiedMonthIndex: number = tmpDate.getMonth();
+    const verifiedYear: number = tmpDate.getFullYear();
+
+    const monthDays: ICalendarDataDay[] = this.createMonthByIndex(monthIndex, year);
+    const paddingStartDaysCheck: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
+    const paddingStartDaysCountNeeded: number = paddingStartDaysCheck < 0 ? 7 + paddingStartDaysCheck : paddingStartDaysCheck;
+    const paddingEndDaysCountCheck: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
+    const paddingEndDaysCountNeeded: number = paddingEndDaysCountCheck >= 7 ? 0 : paddingEndDaysCountCheck;
+    let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
+    let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
+
+    // Fill the first and last week of the month with days from previous and next month
+    if (fillMissingDaysWithDaysFromAdjacentMonths) {
+      const monthDaysPrevious: ICalendarDataDay[] = this.createMonthByIndex(monthIndex - 1, year);
+      const monthDaysNext: ICalendarDataDay[] = this.createMonthByIndex(monthIndex + 1, year);
+
+      paddingStartDays = paddingStartDaysCountNeeded > 0 ? monthDaysPrevious.slice(-paddingStartDaysCountNeeded) : [];
+      paddingEndDays = paddingEndDaysCountNeeded > 0 ? monthDaysNext.slice(0, paddingEndDaysCountNeeded) : [];
+    }
+
+    const monthDaysWithPadding: Array<ICalendarDataDay | null> = [...paddingStartDays, ...monthDays, ...paddingEndDays];
+
+    const result: ICalendarDataMonth = {
+      shortName: this.getMonthShortName(verifiedMonthIndex),
+      fullName: this.getMonthFullName(verifiedMonthIndex),
+      monthNumber: verifiedMonthIndex + 1,
+      monthIndex: verifiedMonthIndex,
+      year: verifiedYear,
+      weeks: this.splitMonthToWeeks(monthDaysWithPadding, verifiedMonthIndex),
+      days: monthDays,
+    };
+
+    console.log('createMonthAsWeeks', result);
+
+    return result;
+  }
+
+  /**
    * Creates month data for particular month
    * @param {number} monthIndex The number of the month (0-based index, so: `0` => `January`, `11` => `December`)
    * @param {number} year The particular year, by default if not passed the Current Year will be used
    * @return {array} An array of ICalendarDataDay for particular month
    */
   private createMonthByIndex(monthIndex: number = new Date().getMonth(), year: number = new Date().getFullYear()): ICalendarDataDay[] {
-    console.log('monthIndex: ', monthIndex, 'year:', year);
     const result: ICalendarDataDay[] = [];
     const tmpDate: Date = new Date(year, monthIndex, 1);
     const daysCount: number = this.daysInMonth(monthIndex, year);
@@ -167,91 +224,28 @@ export class CalendarData {
   }
 
   /**
-   *
-   * @param {number} monthIndex The number of the month (0-based index, so: `0` => `January`, `11` => `December`)
-   * @param {number} year The particular year, by default if not passed the Current Year will be used
-   * @param {number} weekStartsFromDayIndex The day from which the week should be started (0-based index, by default `0` => `Sunday`)
-   * @param {boolean} fillMissingDaysWithDaysFromAdjacentMonths Fill the first and last week of the month with days
-   * from previous and next month, otherwise with `null` (Default `false`)
-   * @return {ICalendarDataMonth}
-   */
-  public createMonthAsWeeks(
-    monthIndex: number,
-    year: number,
-    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
-    fillMissingDaysWithDaysFromAdjacentMonths: boolean = this.fillWeekMissingDaysWithDaysFromAdjacentMonths,
-  ): ICalendarDataMonth {
-    const tmpDate: Date = new Date(year, monthIndex, 1);
-    // We need to get month index and year from the date
-    // to be sure that the data is correct in case the input monthIndex is out o the range 0-11
-    const verifiedMonthIndex: number = tmpDate.getMonth();
-    const verifiedYear: number = tmpDate.getFullYear();
-
-    const monthDays: ICalendarDataDay[] = this.createMonthByIndex(monthIndex, year);
-    console.log('monthDays', monthDays);
-    const paddingStartDaysCheck: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
-    const paddingStartDaysCountNeeded: number = paddingStartDaysCheck < 0 ? 7 + paddingStartDaysCheck : paddingStartDaysCheck;
-    const paddingEndDaysCountCheck: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
-    const paddingEndDaysCountNeeded: number = paddingEndDaysCountCheck >= 7 ? 0 : paddingEndDaysCountCheck;
-    let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
-    let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
-
-    // Fill the first and last week of the month with days from previous and next month
-    if (fillMissingDaysWithDaysFromAdjacentMonths) {
-      const monthDaysPrevious: ICalendarDataDay[] = this.createMonthByIndex(monthIndex - 1, year);
-      const monthDaysNext: ICalendarDataDay[] = this.createMonthByIndex(monthIndex + 1, year);
-
-      paddingStartDays = paddingStartDaysCountNeeded > 0 ? monthDaysPrevious.slice(-paddingStartDaysCountNeeded) : [];
-      paddingEndDays = paddingEndDaysCountNeeded > 0 ? monthDaysNext.slice(0, paddingEndDaysCountNeeded) : [];
-    }
-
-    const monthDaysWithPadding: Array<ICalendarDataDay | null> = [...paddingStartDays, ...monthDays, ...paddingEndDays];
-
-    console.log('monthDaysWithPadding', monthDaysWithPadding);
-
-    const result: ICalendarDataMonth = {
-      shortName: this.getMonthShortName(verifiedMonthIndex),
-      fullName: this.getMonthFullName(verifiedMonthIndex),
-      monthNumber: verifiedMonthIndex + 1,
-      monthIndex: verifiedMonthIndex,
-      year: verifiedYear,
-      weeks: this.splitMonthToWeeks(monthDaysWithPadding, verifiedMonthIndex),
-      days: monthDays,
-    };
-
-    console.log('createMonthAsWeeks', result);
-
-    return result;
-  }
-
-  /**
    * Split the month into weeks
    * @param {ICalendarDataDay[]} monthDaysWithPadding An array days data which should contain padding days
    * @param {number} monthIndex The month index required to calculate the week number
-   * @param {number} weekStartsFromDayIndex The day from which the week should be started (0-based index, by default `0` => `Sunday`)
    * @return {ICalendarDataWeek[]} An Array of weeks data
    */
-  private splitMonthToWeeks(
-    monthDaysWithPadding: ICalendarDataDay[],
-    monthIndex: number,
-    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
-  ): ICalendarDataWeek[] {
+  private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[], monthIndex: number): ICalendarDataWeek[] {
     const weekDaysCount: number = 7;
     const result: ICalendarDataWeek[] = [];
 
     const weeksCount: number = Math.ceil(monthDaysWithPadding.length / weekDaysCount);
 
     for (let i=1; i<=weeksCount; i++) {
+      // It's used to properly calculate the week number
+      let daysOffset: number = 0;
       const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
-      let dayOffset: number = 0;
       const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
-        dayOffset = index;
+        daysOffset = index;
         return !!day && day.monthIndex === monthIndex;
       });
-      console.log('dayOffset', dayOffset);
-      console.log('firstDayOfWeekForMonth', weeksFirstDay);
+
       result.push({
-        weekNumber: this.weekNumber(weeksFirstDay.localeDate, dayOffset),
+        weekNumber: this.weekNumber(weeksFirstDay.localeDate, daysOffset),
         weekDays: daysChunk,
       });
     }
@@ -273,9 +267,10 @@ export class CalendarData {
    * @param {Date} date The Date for which the week number should by calculated
    * @param {number} dayOffset Since not always there is available first day of the week,
    * or first day of the week belongs to the previous month, we need to consider the offset during calculation
+   * @param {number} weekNumberAdjust It allow to increase the week number
    * @return {number} The number of the week for a given date
    */
-  private weekNumber(date: Date, dayOffset: number = 0): number {
+  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = false): number {
     const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
     const calculatedDateNumberOfDaysFromBeginning: number =
       Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
@@ -289,6 +284,14 @@ export class CalendarData {
         Math.floor((priorYearDateLastDec.getTime() - priorYearDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
       const priorYearWeeksCount: number = Math.ceil(priorYearDateNumberOfDaysFromBeginning / 7);
       calculatedDateWeekNumber = priorYearWeeksCount;
+
+      if (weekNumberAdjust) {
+        calculatedDateWeekNumber = 0;
+      }
+    }
+
+    if (weekNumberAdjust) {
+      calculatedDateWeekNumber = calculatedDateWeekNumber + 1;
     }
 
     return calculatedDateWeekNumber;

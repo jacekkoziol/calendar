@@ -40,5 +40,5 @@ const configuration: ICalendarDataConfiguration = {
 };
 
 const calendarDataInstance: CalendarData = new CalendarData(configuration);
-calendarDataInstance.createMonthAsWeeks(0, 2022);
+calendarDataInstance.createMonthAsWeeks(11, 2022);
 
