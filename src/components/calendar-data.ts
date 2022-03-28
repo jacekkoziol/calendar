@@ -22,6 +22,23 @@ export interface ICalendarDataDay {
   monthFullName: string;
 }
 
+export interface ICalendarDataWeek {
+  weekNumber: number;
+  weekDays: Array<ICalendarDataDay | null>
+}
+
+export interface ICalendarDataMonth {
+  shortName: string;
+  fullName: string;
+  monthNumber: number;
+  monthIndex: number;
+  year: number;
+  weeks: ICalendarDataWeek[];
+  days: ICalendarDataDay[];
+}
+
+// Dictionaries
+// -----------------------------------------------------------------------------
 interface ICalendarDataDictionary<T> {
   [key: number]: T;
 }
@@ -98,14 +115,26 @@ export class CalendarData {
   public monthsDictionary: ICalendarDataMonthsNamesDictionary = CALENDAR_DATA_MONTHS_NAMES_DICTIONARY;
 
   constructor() {
-    this.createMonthByIndex();
+    this.createMonthByIndex(11, 2022);
+    this.createMonthAsWeeks(11, 2022);
   }
 
-  public createMonthByIndex(monthIndex: number = new Date().getMonth(), year: number = new Date().getFullYear()): ICalendarDataDay[] {
+  /**
+   * Creates month data for particular month
+   * @param {number} monthIndex The number of the month (0-based index, so: `0` => `January`, `11` => `December`)
+   * @param {number} year The particular year, by default if not passed the Current Year will be used
+   * @return {array} An array of ICalendarDataDay for particular month
+   */
+  private createMonthByIndex(monthIndex: number = new Date().getMonth(), year: number = new Date().getFullYear()): ICalendarDataDay[] {
     console.log('monthIndex: ', monthIndex, 'year', year);
     const result: ICalendarDataDay[] = [];
-    const daysCount: number = this.daysInMonth(monthIndex, year);
     const tmpDate: Date = new Date(year, monthIndex, 1);
+    const daysCount: number = this.daysInMonth(monthIndex, year);
+
+    // We need to get month index and year from the date
+    // to be sure that the data is correct in case the input monthIndex is out o the range 0-11
+    const verifiedMonthIndex: number = tmpDate.getMonth();
+    const verifiedYear: number = tmpDate.getFullYear();
 
     for (let dayNumber: number = 1; dayNumber <= daysCount; dayNumber++) {
       tmpDate.setDate(dayNumber);
@@ -119,14 +148,92 @@ export class CalendarData {
         localeDate: new Date(tmpDate),
         dateIso: tmpDate.toISOString(),
         timestamp: tmpDate.getTime(),
-        year,
-        month: monthIndex + 1,
-        monthShortName: this.getMonthShortName(monthIndex),
-        monthFullName: this.getMonthFullName(monthIndex),
+        year: verifiedYear,
+        month: verifiedMonthIndex + 1,
+        monthShortName: this.getMonthShortName(verifiedMonthIndex),
+        monthFullName: this.getMonthFullName(verifiedMonthIndex),
       });
     }
 
     console.log('result', result);
+    return result;
+  }
+
+  public createMonthAsWeeks(
+      monthIndex: number,
+      year: number,
+      weekStartsFromDayIndex: number = 1,
+      paddingWithSiblingsMonths: boolean = true,
+  ): ICalendarDataMonth {
+    const tmpDate: Date = new Date(year, monthIndex, 1);
+    // We need to get month index and year from the date
+    // to be sure that the data is correct in case the input monthIndex is out o the range 0-11
+    const verifiedMonthIndex: number = tmpDate.getMonth();
+    const verifiedYear: number = tmpDate.getFullYear();
+    // const result: ICalendarDataMonth = {
+    //   shortName: this.getMonthShortName(verifiedMonthIndex),
+    //   fullName: this.getMonthFullName(verifiedMonthIndex),
+    //   monthNumber: verifiedMonthIndex + 1,
+    //   monthIndex: verifiedMonthIndex,
+    //   year: verifiedYear,
+    //   weeks: [],
+    //   days: [],
+    // };
+
+
+    const monthDays: ICalendarDataDay[] = this.createMonthByIndex(monthIndex, year);
+    const paddingStartDaysCountNeeded: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
+    const paddingEndDaysCountNeeded: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
+    let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
+    let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
+
+    if (paddingWithSiblingsMonths) {
+      const monthDaysPrevious: ICalendarDataDay[] = this.createMonthByIndex(monthIndex - 1, year);
+      const monthDaysNext: ICalendarDataDay[] = this.createMonthByIndex(monthIndex + 1, year);
+
+      paddingStartDays = paddingStartDaysCountNeeded > 0 ? monthDaysPrevious.slice(-paddingStartDaysCountNeeded) : [];
+      paddingEndDays = paddingEndDaysCountNeeded > 0 ? monthDaysNext.slice(0, paddingEndDaysCountNeeded) : [];
+    }
+
+    const monthDaysWithPadding: Array<ICalendarDataDay | null> = [...paddingStartDays, ...monthDays, ...paddingEndDays];
+
+    const result: ICalendarDataMonth = {
+      shortName: this.getMonthShortName(verifiedMonthIndex),
+      fullName: this.getMonthFullName(verifiedMonthIndex),
+      monthNumber: verifiedMonthIndex + 1,
+      monthIndex: verifiedMonthIndex,
+      year: verifiedYear,
+      weeks: this.splitMonthToWeeks(monthDaysWithPadding),
+      days: monthDays,
+    };
+
+    // console.log('paddingStartDays', paddingStartDays);
+
+    console.log('createMonthAsWeeks', result);
+
+    return result;
+  }
+
+  private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[]): ICalendarDataWeek[] {
+    const weekDaysCount: number = 7;
+    const result: ICalendarDataWeek[] = [];
+
+    // let chunkArr = [];
+    const weeksCount: number = Math.ceil(monthDaysWithPadding.length / weekDaysCount);
+
+    for (let i=1; i<=weeksCount; i++) {
+      const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
+      result.push({
+        weekNumber: 1,
+        weekDays: daysChunk,
+      });
+    }
+
+    // for (let i=1; i<=weeksToShow; i++) {
+    //   chunkArr.push(monthDaysWithPadding.slice(i * week - week, i * week));
+    // }
+
+    // this.arrWeeksOfTheMonth = chunkArr;
     return result;
   }
 
