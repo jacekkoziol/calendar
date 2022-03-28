@@ -1,7 +1,3 @@
-// export interface ICalendarDataMonth {
-
-// }
-
 /**
  * @property dayNo The Number of the day in the month
  * @property dayOfWeek The Number of the day in the week [0-based index] (0 - Sunday, 6 - Saturday )
@@ -35,6 +31,14 @@ export interface ICalendarDataMonth {
   year: number;
   weeks: ICalendarDataWeek[];
   days: ICalendarDataDay[];
+}
+
+
+export interface ICalendarDataConfiguration {
+  startWeekWithDay?: number;
+  dictionaryMonths?: ICalendarDataMonthsNamesDictionary;
+  dictionaryWeekdays?: ICalendarDataWeekdaysDictionary;
+  fillWeekMissingDaysWithDaysFromAdjacentMonths?: boolean
 }
 
 // Dictionaries
@@ -89,7 +93,7 @@ export interface ICalendarDataMonthsNamesDictionary extends ICalendarDataDiction
   11: ICalendarDataMonthName;
 }
 
-export const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDictionary = {
+const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDictionary = {
   0: {shortName: 'Jan', fullName: 'January'},
   1: {shortName: 'Feb', fullName: 'February'},
   2: {shortName: 'Mar', fullName: 'March'},
@@ -105,18 +109,20 @@ export const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDict
 };
 
 
-// export interface ICalendarDataMonth
-
 /**
  * CalendarDate generates data for the calendars needs
  */
 export class CalendarData {
-  public weekdaysDictionary: ICalendarDataWeekdaysDictionary = CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY;
-  public monthsDictionary: ICalendarDataMonthsNamesDictionary = CALENDAR_DATA_MONTHS_NAMES_DICTIONARY;
+  private weekdaysDictionary: ICalendarDataWeekdaysDictionary = CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY;
+  private monthsDictionary: ICalendarDataMonthsNamesDictionary = CALENDAR_DATA_MONTHS_NAMES_DICTIONARY;
+  private startWeekWithDayIndex: number = 0;
+  private fillWeekMissingDaysWithDaysFromAdjacentMonths: boolean = false;
 
-  constructor() {
-    this.createMonthByIndex(11, 2022);
-    this.createMonthAsWeeks(11, 2022);
+  constructor(config: ICalendarDataConfiguration) {
+    this.overrideMonthsDictionary(config.dictionaryMonths);
+    this.overrideWeekdaysDictionary(config.dictionaryWeekdays);
+    this.startWeekWithDayIndex = config.startWeekWithDay || 0;
+    this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
   }
 
   /**
@@ -126,7 +132,7 @@ export class CalendarData {
    * @return {array} An array of ICalendarDataDay for particular month
    */
   private createMonthByIndex(monthIndex: number = new Date().getMonth(), year: number = new Date().getFullYear()): ICalendarDataDay[] {
-    console.log('monthIndex: ', monthIndex, 'year', year);
+    console.log('monthIndex: ', monthIndex, 'year:', year);
     const result: ICalendarDataDay[] = [];
     const tmpDate: Date = new Date(year, monthIndex, 1);
     const daysCount: number = this.daysInMonth(monthIndex, year);
@@ -155,39 +161,40 @@ export class CalendarData {
       });
     }
 
-    console.log('result', result);
     return result;
   }
 
+  /**
+   *
+   * @param {number} monthIndex The number of the month (0-based index, so: `0` => `January`, `11` => `December`)
+   * @param {number} year The particular year, by default if not passed the Current Year will be used
+   * @param {number} weekStartsFromDayIndex The day from which the week should be started (0-based index, by default `0` => `Sunday`)
+   * @param {boolean} fillMissingDaysWithDaysFromAdjacentMonths Fill the first and last week of the month with days
+   * from previous and next month, otherwise with `null` (Default `false`)
+   * @return {ICalendarDataMonth}
+   */
   public createMonthAsWeeks(
-      monthIndex: number,
-      year: number,
-      weekStartsFromDayIndex: number = 1,
-      paddingWithSiblingsMonths: boolean = true,
+    monthIndex: number,
+    year: number,
+    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
+    fillMissingDaysWithDaysFromAdjacentMonths: boolean = this.fillWeekMissingDaysWithDaysFromAdjacentMonths,
   ): ICalendarDataMonth {
     const tmpDate: Date = new Date(year, monthIndex, 1);
     // We need to get month index and year from the date
     // to be sure that the data is correct in case the input monthIndex is out o the range 0-11
     const verifiedMonthIndex: number = tmpDate.getMonth();
     const verifiedYear: number = tmpDate.getFullYear();
-    // const result: ICalendarDataMonth = {
-    //   shortName: this.getMonthShortName(verifiedMonthIndex),
-    //   fullName: this.getMonthFullName(verifiedMonthIndex),
-    //   monthNumber: verifiedMonthIndex + 1,
-    //   monthIndex: verifiedMonthIndex,
-    //   year: verifiedYear,
-    //   weeks: [],
-    //   days: [],
-    // };
-
 
     const monthDays: ICalendarDataDay[] = this.createMonthByIndex(monthIndex, year);
-    const paddingStartDaysCountNeeded: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
+    console.log('monthDays', monthDays);
+    const paddingStartDaysCheck: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
+    const paddingStartDaysCountNeeded: number = paddingStartDaysCheck < 0 ? 7 + paddingStartDaysCheck : paddingStartDaysCheck;
     const paddingEndDaysCountNeeded: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
     let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
     let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
 
-    if (paddingWithSiblingsMonths) {
+    // Fill the first and last week of the month with days from previous and next month
+    if (fillMissingDaysWithDaysFromAdjacentMonths) {
       const monthDaysPrevious: ICalendarDataDay[] = this.createMonthByIndex(monthIndex - 1, year);
       const monthDaysNext: ICalendarDataDay[] = this.createMonthByIndex(monthIndex + 1, year);
 
@@ -207,18 +214,20 @@ export class CalendarData {
       days: monthDays,
     };
 
-    // console.log('paddingStartDays', paddingStartDays);
-
     console.log('createMonthAsWeeks', result);
 
     return result;
   }
 
+  /**
+   * Split the month into weeks
+   * @param {ICalendarDataDay[]} monthDaysWithPadding An array days data which should contain padding days
+   * @return {ICalendarDataWeek[]} An Array of weeks data
+   */
   private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[]): ICalendarDataWeek[] {
     const weekDaysCount: number = 7;
     const result: ICalendarDataWeek[] = [];
 
-    // let chunkArr = [];
     const weeksCount: number = Math.ceil(monthDaysWithPadding.length / weekDaysCount);
 
     for (let i=1; i<=weeksCount; i++) {
@@ -229,11 +238,6 @@ export class CalendarData {
       });
     }
 
-    // for (let i=1; i<=weeksToShow; i++) {
-    //   chunkArr.push(monthDaysWithPadding.slice(i * week - week, i * week));
-    // }
-
-    // this.arrWeeksOfTheMonth = chunkArr;
     return result;
   }
 
@@ -262,5 +266,29 @@ export class CalendarData {
 
   private getMonthFullName(monthIndex: number): string {
     return this.monthsDictionary[monthIndex].fullName;
+  }
+
+  private overrideWeekdaysDictionary(dictionaryOfWeekdays: ICalendarDataWeekdaysDictionary): void {
+    if (!dictionaryOfWeekdays) {
+      return;
+    }
+
+    for (const weekIndex in this.weekdaysDictionary) {
+      if (this.weekdaysDictionary.hasOwnProperty(weekIndex) && weekIndex in dictionaryOfWeekdays) {
+        this.weekdaysDictionary[weekIndex] = dictionaryOfWeekdays[weekIndex];
+      }
+    }
+  }
+
+  private overrideMonthsDictionary(dictionaryOfMonths?: ICalendarDataMonthsNamesDictionary): void {
+    if (!dictionaryOfMonths) {
+      return;
+    }
+
+    for (const monthIndex in this.monthsDictionary) {
+      if (this.monthsDictionary.hasOwnProperty(monthIndex) && monthIndex in dictionaryOfMonths) {
+        this.monthsDictionary[monthIndex] = dictionaryOfMonths[monthIndex];
+      }
+    }
   }
 }
