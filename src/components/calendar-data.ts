@@ -13,7 +13,8 @@ export interface ICalendarDataDay {
   dateIso: string | null;
   timestamp: number | null;
   year: number | null;
-  month: number | null;
+  monthNumber: number | null;
+  monthIndex: number;
   monthShortName: string;
   monthFullName: string;
 }
@@ -155,7 +156,8 @@ export class CalendarData {
         dateIso: tmpDate.toISOString(),
         timestamp: tmpDate.getTime(),
         year: verifiedYear,
-        month: verifiedMonthIndex + 1,
+        monthNumber: verifiedMonthIndex + 1,
+        monthIndex: verifiedMonthIndex,
         monthShortName: this.getMonthShortName(verifiedMonthIndex),
         monthFullName: this.getMonthFullName(verifiedMonthIndex),
       });
@@ -189,7 +191,8 @@ export class CalendarData {
     console.log('monthDays', monthDays);
     const paddingStartDaysCheck: number = monthDays[0].dayOfWeek - weekStartsFromDayIndex;
     const paddingStartDaysCountNeeded: number = paddingStartDaysCheck < 0 ? 7 + paddingStartDaysCheck : paddingStartDaysCheck;
-    const paddingEndDaysCountNeeded: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
+    const paddingEndDaysCountCheck: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
+    const paddingEndDaysCountNeeded: number = paddingEndDaysCountCheck >= 7 ? 0 : paddingEndDaysCountCheck;
     let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
     let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
 
@@ -204,13 +207,15 @@ export class CalendarData {
 
     const monthDaysWithPadding: Array<ICalendarDataDay | null> = [...paddingStartDays, ...monthDays, ...paddingEndDays];
 
+    console.log('monthDaysWithPadding', monthDaysWithPadding);
+
     const result: ICalendarDataMonth = {
       shortName: this.getMonthShortName(verifiedMonthIndex),
       fullName: this.getMonthFullName(verifiedMonthIndex),
       monthNumber: verifiedMonthIndex + 1,
       monthIndex: verifiedMonthIndex,
       year: verifiedYear,
-      weeks: this.splitMonthToWeeks(monthDaysWithPadding),
+      weeks: this.splitMonthToWeeks(monthDaysWithPadding, verifiedMonthIndex),
       days: monthDays,
     };
 
@@ -222,9 +227,15 @@ export class CalendarData {
   /**
    * Split the month into weeks
    * @param {ICalendarDataDay[]} monthDaysWithPadding An array days data which should contain padding days
+   * @param {number} monthIndex The month index required to calculate the week number
+   * @param {number} weekStartsFromDayIndex The day from which the week should be started (0-based index, by default `0` => `Sunday`)
    * @return {ICalendarDataWeek[]} An Array of weeks data
    */
-  private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[]): ICalendarDataWeek[] {
+  private splitMonthToWeeks(
+    monthDaysWithPadding: ICalendarDataDay[],
+    monthIndex: number,
+    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
+  ): ICalendarDataWeek[] {
     const weekDaysCount: number = 7;
     const result: ICalendarDataWeek[] = [];
 
@@ -232,8 +243,15 @@ export class CalendarData {
 
     for (let i=1; i<=weeksCount; i++) {
       const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
+      let dayOffset: number = 0;
+      const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
+        dayOffset = index;
+        return !!day && day.monthIndex === monthIndex;
+      });
+      console.log('dayOffset', dayOffset);
+      console.log('firstDayOfWeekForMonth', weeksFirstDay);
       result.push({
-        weekNumber: 1,
+        weekNumber: this.weekNumber(weeksFirstDay.localeDate, dayOffset),
         weekDays: daysChunk,
       });
     }
@@ -248,6 +266,53 @@ export class CalendarData {
    */
   private daysInMonth(monthIndex: number, year: number): number {
     return new Date(year, monthIndex + 1, 0).getDate();
+  }
+
+  // /**
+  //  *
+  //  * @param {Date} date The Date for which the week number should by calculated
+  //  * @param {number} dayOffset Since not always there is available first day of the week,
+  //  * or first day of the week belongs to the previous month, we need to consider the offset during calculation
+  //  * @return {number} The number of the week for a given date
+  //  */
+  // private weekNumber(date: Date, dayOffset: number = 0): number {
+  //   // Find the year of the current date
+  //   const oneJan = new Date(date.getFullYear(), 0, 1);
+
+  //   // Calculating number of days in given year before the given date
+  //   const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+
+  //   console.log('numberOfDays', numberOfDays);
+
+  //   // Adding 1 since to current date and returns value starting from 0
+  //   const result = Math.ceil((date.getDay() + 1 + numberOfDays - dayOffset) / 7);
+  //   return result;
+  // }
+
+
+  private weekNumber(date: Date, dayOffset: number = 0): number {
+    const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
+    const calculatedDateNumberOfDaysFromBeginning: number =
+      Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
+
+    if (calculatedDateNumberOfDaysFromBeginning === 0 && dayOffset > 0) {
+      console.log('We should use number of last week of previous year');
+    }
+
+    const calculatedDateWeekNumber: number = Math.ceil((date.getDay() + 1 + calculatedDateNumberOfDaysFromBeginning - dayOffset) / 7);
+
+    console.log('calculatedDateWeekNumber', calculatedDateWeekNumber);
+    // Find the year of the current date
+    const oneJan = new Date(date.getFullYear(), 0, 1);
+
+    // Calculating number of days in given year before the given date
+    const numberOfDays = Math.floor((date.getTime() - oneJan.getTime()) / (24 * 60 * 60 * 1000));
+
+    console.log('numberOfDays', numberOfDays);
+
+    // Adding 1 since to current date and returns value starting from 0
+    const result = Math.ceil((date.getDay() + 1 + numberOfDays - dayOffset) / 7);
+    return result;
   }
 
   // Helpers
