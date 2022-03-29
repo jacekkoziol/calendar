@@ -2,7 +2,7 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+// const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.ts',
@@ -13,6 +13,10 @@ module.exports = {
         test: /\.tsx?$/,
         use: 'ts-loader',
         exclude: /node_modules/,
+      },
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
       },
     ],
   },
@@ -29,17 +33,17 @@ module.exports = {
       title: 'Webpack Output',
       template: './src/index.html',
     }),
-    new CopyWebpackPlugin({
-      patterns: [
-        {from: './src/styles'},
-      ],
-    }),
+    // new CopyWebpackPlugin({
+    //   patterns: [
+    //     {from: './src/styles'},
+    //   ],
+    // }),
   ],
   devServer: {
     port: 9000,
     client: {
       overlay: true,
-      logging: 'info',
+      logging: 'none', // 'info'
     },
   },
 };

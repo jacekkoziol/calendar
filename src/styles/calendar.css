@@ -1,0 +1,15 @@
+:root {
+  --cal-white: #fff;
+  --cal-gray: #777;
+  --cal-gray-light: #ddd;
+}
+
+.cal__Container {
+  display: block;
+  width: 100%;
+  min-height: 20px;
+  background-color: var(--cal-white);
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--cal-gray-light);
+}

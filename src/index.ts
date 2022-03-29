@@ -1,9 +1,13 @@
+import './styles/style.css';
+import './styles/calendar.css';
+
 import {
   CalendarData,
   ICalendarDataConfiguration,
   ICalendarDataMonthsNamesDictionary,
   ICalendarDataWeekdaysDictionary,
 } from './classes/calendar-data';
+import {Calendar} from './components/calendar';
 
 console.log('Works');
 
@@ -43,3 +47,7 @@ const configuration: ICalendarDataConfiguration = {
 const calendarDataInstance: CalendarData = new CalendarData(configuration);
 calendarDataInstance.createMonthAsWeeks(11, 2022);
 
+// Initialize Calendar
+// -----------------------------------------------------------------------------
+const calendar: Calendar = new Calendar('[data-js-calendar]');
+console.log(calendar);

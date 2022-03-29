@@ -129,12 +129,12 @@ export class CalendarData {
   private fillWeekMissingDaysWithDaysFromAdjacentMonths: boolean = false;
   private weekNumberAdjust: boolean = false;
 
-  constructor(config: ICalendarDataConfiguration) {
-    this.overrideMonthsDictionary(config.dictionaryMonths);
-    this.overrideWeekdaysDictionary(config.dictionaryWeekdays);
-    this.startWeekWithDayIndex = config.startWeekWithDay || 0;
-    this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
-    this.weekNumberAdjust = config.weekNumberAdjust || false;
+  constructor(config?: ICalendarDataConfiguration) {
+    this.overrideMonthsDictionary(config?.dictionaryMonths);
+    this.overrideWeekdaysDictionary(config?.dictionaryWeekdays);
+    this.startWeekWithDayIndex = config?.startWeekWithDay || 0;
+    this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config?.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
+    this.weekNumberAdjust = config?.weekNumberAdjust || false;
   }
 
   /**
