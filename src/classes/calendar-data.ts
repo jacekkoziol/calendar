@@ -32,10 +32,16 @@ export interface ICalendarDataMonth {
   year: number;
   weeks: ICalendarDataWeek[];
   days: ICalendarDataDay[];
+  weekdaysOrder: ICalendarDataWeekdayName[]
 }
 
 /**
- * TODO:: add params description
+ * @property {number} startWeekWithDay Set the day from which the week should start (0-based index, `0`- Sunday, `6`- Saturday)
+ * @property {nuICalendarDataMonthsNamesDictionary} dictionaryMonths The dictionary/translation of Months names
+ * @property {ICalendarDataWeekdaysDictionary} dictionaryWeekdays The dictionary/translation of Weekdays names
+ * @property {boolean} fillWeekMissingDaysWithDaysFromAdjacentMonths Fill the first and last week of the month with days
+ * from previous and next month, otherwise with `null` (Default `false`)
+ * @property {boolean} weekNumberAdjust
  */
 export interface ICalendarDataConfiguration {
   startWeekWithDay?: number;
@@ -121,12 +127,14 @@ export class CalendarData {
   private monthsDictionary: ICalendarDataMonthsNamesDictionary = CALENDAR_DATA_MONTHS_NAMES_DICTIONARY;
   private startWeekWithDayIndex: number = 0;
   private fillWeekMissingDaysWithDaysFromAdjacentMonths: boolean = false;
+  private weekNumberAdjust: boolean = false;
 
   constructor(config: ICalendarDataConfiguration) {
     this.overrideMonthsDictionary(config.dictionaryMonths);
     this.overrideWeekdaysDictionary(config.dictionaryWeekdays);
     this.startWeekWithDayIndex = config.startWeekWithDay || 0;
     this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
+    this.weekNumberAdjust = config.weekNumberAdjust || false;
   }
 
   /**
@@ -177,6 +185,7 @@ export class CalendarData {
       year: verifiedYear,
       weeks: this.splitMonthToWeeks(monthDaysWithPadding, verifiedMonthIndex),
       days: monthDays,
+      weekdaysOrder: this.getWeekdaysOrder(weekStartsFromDayIndex),
     };
 
     console.log('createMonthAsWeeks', result);
@@ -270,10 +279,10 @@ export class CalendarData {
    * @param {number} weekNumberAdjust It allow to increase the week number
    * @return {number} The number of the week for a given date
    */
-  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = false): number {
+  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.weekNumberAdjust): number {
     const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
     const calculatedDateNumberOfDaysFromBeginning: number =
-      Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
+      Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000)) - dayOffset;
     let calculatedDateWeekNumber: number = Math.ceil((date.getDay() + 1 + calculatedDateNumberOfDaysFromBeginning - dayOffset) / 7);
 
     if (dayOffset > 0 && calculatedDateNumberOfDaysFromBeginning - dayOffset <=0 ) {
@@ -337,5 +346,20 @@ export class CalendarData {
         this.monthsDictionary[monthIndex] = dictionaryOfMonths[monthIndex];
       }
     }
+  }
+
+  private getWeekdaysOrder(weekStartsFromDayIndex: number): ICalendarDataWeekdayName[] {
+    const startFromDayIndex: number = weekStartsFromDayIndex % 7;
+    const start: ICalendarDataWeekdayName[] = [];
+    const end: ICalendarDataWeekdayName[] = [];
+    Object.keys(this.weekdaysDictionary).forEach((key: string) => {
+      const numKey: number = Number(key);
+      if (numKey >= startFromDayIndex) {
+        start.push(this.weekdaysDictionary[numKey]);
+      } else {
+        end.push(this.weekdaysDictionary[numKey]);
+      }
+    });
+    return [...start, ...end];
   }
 }

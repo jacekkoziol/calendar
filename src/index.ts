@@ -3,7 +3,7 @@ import {
   ICalendarDataConfiguration,
   ICalendarDataMonthsNamesDictionary,
   ICalendarDataWeekdaysDictionary,
-} from './components/calendar-data';
+} from './classes/calendar-data';
 
 console.log('Works');
 
@@ -37,6 +37,7 @@ const configuration: ICalendarDataConfiguration = {
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
   startWeekWithDay: 0,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: true,
+  weekNumberAdjust: false,
 };
 
 const calendarDataInstance: CalendarData = new CalendarData(configuration);
