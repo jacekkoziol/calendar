@@ -13,3 +13,9 @@
   padding: 0;
   border: 1px solid var(--cal-gray-light);
 }
+
+.cal__MonthTable {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+}
