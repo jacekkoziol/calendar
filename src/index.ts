@@ -7,7 +7,7 @@ import {
   ICalendarDataMonthsNamesDictionary,
   ICalendarDataWeekdaysDictionary,
 } from './classes/calendar-data';
-import {Calendar} from './components/calendar';
+import {Calendar, ICalendarConfiguration} from './components/calendar';
 
 console.log('Works');
 
@@ -36,7 +36,7 @@ export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDi
   6: {shortName: 'Sob', fullName: 'Sobota'},
 };
 
-const configuration: ICalendarDataConfiguration = {
+const calendarDataConfiguration: ICalendarDataConfiguration = {
   dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
   startWeekWithDay: 1,
@@ -49,5 +49,9 @@ calendarDataInstance.createMonthAsWeeks(11, 2022);
 
 // Initialize Calendar
 // -----------------------------------------------------------------------------
-const calendar: Calendar = new Calendar('[data-js-calendar]', configuration);
+const calendarConfiguration: ICalendarConfiguration = {
+  showWeekNumbers: true,
+};
+
+const calendar: Calendar = new Calendar('[data-js-calendar]', calendarConfiguration, calendarDataConfiguration);
 console.log(calendar);

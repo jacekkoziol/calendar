@@ -1,4 +1,4 @@
-import {CalendarData, ICalendarDataConfiguration, ICalendarDataMonth, ICalendarDataWeekdayName} from '../classes/calendar-data';
+import {CalendarData, ICalendarDataConfiguration, ICalendarDataDay, ICalendarDataMonth, ICalendarDataWeek, ICalendarDataWeekdayName} from '../classes/calendar-data';
 
 export interface ICalendarConfiguration {
   [key: string]: any;
@@ -18,8 +18,12 @@ export class Calendar extends CalendarData {
     showWeekNumbers: false,
   };
 
-  constructor(calendarMainContainerSelector: string, configCalendarData?: ICalendarDataConfiguration) {
+  constructor(
+    calendarMainContainerSelector: string,
+    configCalendar?: ICalendarConfiguration,
+    configCalendarData?: ICalendarDataConfiguration) {
     super(configCalendarData);
+    this.overrideConfiguration(configCalendar);
 
     this.calendarDataMonth = this.createMonthAsWeeks(this.currentDate.getMonth(), this.currentDate.getFullYear());
     this.initializeCalendar(calendarMainContainerSelector);
@@ -54,7 +58,7 @@ export class Calendar extends CalendarData {
     this.calendarContainer.append(this.calendarNavigation, this.calendarMonth);
   }
 
-  private createMonthTemplate(showWeekNumber: boolean = false): void {
+  private createMonthTemplate(showWeekNumber: boolean = this.config.showWeekNumbers): void {
     // Table
     const monthTable: HTMLTableElement = document.createElement('table');
     monthTable.className = 'cal__MonthTable';
@@ -86,11 +90,59 @@ export class Calendar extends CalendarData {
     const monthTableBody: HTMLTableSectionElement = document.createElement('tbody');
     monthTableHead.className = 'cal__MonthTableBody';
 
-    // const monthRowsWeeksNames: HTMLTableRowElement = document.createElement('tr');
-    // monthRowsWeeksNames.className = 'cal__MonthTable__tr'
-    // const monthRowsWeeks: HTMLTableRowElement[] = [];
+    this.calendarDataMonth.weeks.forEach((week: ICalendarDataWeek) => {
+      const row: HTMLTableRowElement = document.createElement('tr');
+      row.className = 'cal__MonthTableBody__tr';
 
-    // this.calendarDataMonth.weekdaysOrder
+      // Create Week Number Cell
+      if (showWeekNumber) {
+        const tmpTd: HTMLTableCellElement = document.createElement('td');
+        tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--week-no';
+
+        const tmpSpan: HTMLSpanElement = document.createElement('span');
+        tmpSpan.className = 'cal__MonthTableBody__td-span cal__MonthTableBody__td-span--week-no';
+        tmpSpan.textContent = `${week.weekNumber}`;
+        // tmpTd.
+        tmpTd.appendChild(tmpSpan);
+        row.appendChild(tmpTd);
+      }
+
+      // Create days of the week
+      week.weekDays.forEach((day: ICalendarDataDay | null) => {
+        const tmpTd: HTMLTableCellElement = document.createElement('td');
+        tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--weekday';
+
+        if (day) {
+          tmpTd.classList.add(`cal__MonthTableBody__td--weekday-${day.dayOfWeek}`);
+          const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
+          const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
+          const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
+
+          if (isDayOtherMonth) {
+            tmpTd.classList.add('is-for-other-month');
+
+            if (isDayPrevMonth) {
+              tmpTd.classList.add('is-for-prev-month');
+            }
+
+            if (isDayNextMonth) {
+              tmpTd.classList.add('is-for-next-month');
+            }
+          }
+
+          const tmpSpan: HTMLSpanElement = document.createElement('span');
+          tmpSpan.className = 'cal__MonthTableBody__td-span cal__MonthTableBody__td-span--weekday';
+          tmpSpan.textContent = `${day.dayOfMonth}`;
+          tmpTd.appendChild(tmpSpan);
+        }
+
+        row.appendChild(tmpTd);
+      });
+
+
+      monthTableBody.append(row);
+    });
+
 
     monthTable.append(monthTableHead, monthTableBody);
 
