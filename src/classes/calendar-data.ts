@@ -123,8 +123,8 @@ const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDictionary 
  * CalendarDate generates data for the calendars needs
  */
 export class CalendarData {
-  private weekdaysDictionary: ICalendarDataWeekdaysDictionary = CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY;
-  private monthsDictionary: ICalendarDataMonthsNamesDictionary = CALENDAR_DATA_MONTHS_NAMES_DICTIONARY;
+  private weekdaysDictionary: ICalendarDataWeekdaysDictionary = JSON.parse(JSON.stringify(CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY));
+  private monthsDictionary: ICalendarDataMonthsNamesDictionary = JSON.parse(JSON.stringify(CALENDAR_DATA_MONTHS_NAMES_DICTIONARY));
   private startWeekWithDayIndex: number = 0;
   private fillWeekMissingDaysWithDaysFromAdjacentMonths: boolean = false;
   private weekNumberAdjust: boolean = false;
@@ -135,6 +135,8 @@ export class CalendarData {
     this.startWeekWithDayIndex = config?.startWeekWithDay || 0;
     this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config?.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
     this.weekNumberAdjust = config?.weekNumberAdjust || false;
+
+    console.log('THIS', this);
   }
 
   /**
