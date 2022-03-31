@@ -16,10 +16,12 @@ export class Calendar extends CalendarData {
   private calendarDataMonth: ICalendarDataMonth;
   private currentDate: Date = new Date();
 
-  private calendarContainer: HTMLDivElement;
-  private calendarNavigation: HTMLDivElement;
-  private calendarMonth: HTMLDivElement;
-  private calendarMonthTable: HTMLTableElement;
+  // private calendarMothsOptions: ICalendarOptionMonth[] = [];
+
+  private htmlCalendarContainer: HTMLDivElement;
+  private htmlCalendarNavigation: HTMLDivElement;
+  private htmlCalendarMonth: HTMLDivElement;
+  private htmlCalendarMonthTable: HTMLTableElement;
 
   private calendarConfig: ICalendarConfiguration = {
     showWeekNumbers: false,
@@ -32,6 +34,7 @@ export class Calendar extends CalendarData {
     super(configCalendarData);
     this.overrideConfiguration(configCalendar);
 
+    // this.calendarMothsOptions = this.generateMothsOptionsList();
     this.calendarDataMonth = this.createMonthAsWeeks(this.currentDate.getMonth(), this.currentDate.getFullYear());
     this.initializeCalendar(calendarMainContainerSelector);
   }
@@ -48,21 +51,21 @@ export class Calendar extends CalendarData {
     }
 
     this.createCalendarTemplate();
-    mainCalendarContainer.appendChild(this.calendarContainer);
+    mainCalendarContainer.appendChild(this.htmlCalendarContainer);
     this.createMonthTemplate();
   }
 
   private createCalendarTemplate(): void {
-    this.calendarContainer = document.createElement('div');
-    this.calendarContainer.className = 'cal__Container';
+    this.htmlCalendarContainer = document.createElement('div');
+    this.htmlCalendarContainer.className = 'cal__Container';
 
-    this.calendarNavigation = document.createElement('div');
-    this.calendarNavigation.className = 'cal__Navigation';
+    this.htmlCalendarNavigation = document.createElement('div');
+    this.htmlCalendarNavigation.className = 'cal__Navigation';
 
-    this.calendarMonth = document.createElement('div');
-    this.calendarMonth.className = 'cal__Month';
+    this.htmlCalendarMonth = document.createElement('div');
+    this.htmlCalendarMonth.className = 'cal__Month';
 
-    this.calendarContainer.append(this.calendarNavigation, this.calendarMonth);
+    this.htmlCalendarContainer.append(this.htmlCalendarNavigation, this.htmlCalendarMonth);
   }
 
   private createMonthTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): void {
@@ -80,7 +83,7 @@ export class Calendar extends CalendarData {
 
       const tmpSpan: HTMLSpanElement = document.createElement('span');
       tmpSpan.className = 'cal__MonthTableHead__th-span';
-      tmpSpan.textContent = item.shortName;
+      tmpSpan.textContent = item.nameShort;
 
       tmpTh.appendChild(tmpSpan);
       monthTableHead.appendChild(tmpTh);
@@ -156,8 +159,8 @@ export class Calendar extends CalendarData {
     // this.calendarMonth.removeChild(this.calendarMonthTable);
     // this.calendarMonth.appendChild(monthTable);
     // this.calendarMonthTable = monthTable;
-    this.calendarMonthTable = monthTable;
-    this.calendarMonth.appendChild(this.calendarMonthTable);
+    this.htmlCalendarMonthTable = monthTable;
+    this.htmlCalendarMonth.appendChild(this.htmlCalendarMonthTable);
   }
 
   private overrideConfiguration(newConfig: ICalendarConfiguration): void {

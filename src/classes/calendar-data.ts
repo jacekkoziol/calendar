@@ -7,7 +7,7 @@
 export interface ICalendarDataDay {
   dayOfMonth: number | null;
   dayOfWeek: number | null;
-  dayShortName: string | null;
+  dayNameShort: string | null;
   dayName: string | null;
   localeDate: Date | null;
   dateIso: string | null;
@@ -15,8 +15,8 @@ export interface ICalendarDataDay {
   year: number | null;
   monthNumber: number | null;
   monthIndex: number;
-  monthShortName: string;
-  monthFullName: string;
+  monthNameShort: string;
+  monthNameFull: string;
 }
 
 export interface ICalendarDataWeek {
@@ -25,8 +25,8 @@ export interface ICalendarDataWeek {
 }
 
 export interface ICalendarDataMonth {
-  shortName: string;
-  fullName: string;
+  nameShort: string;
+  nameFull: string;
   monthNumber: number;
   monthIndex: number;
   year: number;
@@ -44,12 +44,21 @@ export interface ICalendarDataMonth {
  * @property {boolean} weekNumberAdjust
  */
 export interface ICalendarDataConfiguration {
-  [key: string]: any;
+  [key: string]: unknown;
   startWeekWithDay?: number;
   dictionaryMonths?: ICalendarDataMonthsNamesDictionary;
   dictionaryWeekdays?: ICalendarDataWeekdaysDictionary;
   fillWeekMissingDaysWithDaysFromAdjacentMonths?: boolean;
   weekNumberAdjust?: boolean;
+}
+
+export interface ICalendarDataMonthsListItem {
+  [key: string]: unknown;
+  monthIndex: number;
+  nameShort: string;
+  nameFull: string;
+  orgNameShort: string;
+  orgNameFull: string;
 }
 
 // Dictionaries
@@ -59,8 +68,8 @@ interface ICalendarDataDictionary<T> {
 }
 
 export interface ICalendarDataWeekdayName {
-  shortName: string;
-  fullName: string;
+  nameShort: string;
+  nameFull: string;
 }
 
 export interface ICalendarDataWeekdaysDictionary extends ICalendarDataDictionary<ICalendarDataWeekdayName> {
@@ -73,19 +82,19 @@ export interface ICalendarDataWeekdaysDictionary extends ICalendarDataDictionary
   6: ICalendarDataWeekdayName
 }
 
-export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY: ICalendarDataWeekdaysDictionary = {
-  0: {shortName: 'Sun', fullName: 'Sunday'},
-  1: {shortName: 'Mon', fullName: 'Monday'},
-  2: {shortName: 'Tue', fullName: 'Tuesday'},
-  3: {shortName: 'Wed', fullName: 'Wednesday'},
-  4: {shortName: 'Thu', fullName: 'Thursday'},
-  5: {shortName: 'Fri', fullName: 'Friday'},
-  6: {shortName: 'Sat', fullName: 'Saturday'},
+const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY: ICalendarDataWeekdaysDictionary = {
+  0: {nameShort: 'Sun', nameFull: 'Sunday'},
+  1: {nameShort: 'Mon', nameFull: 'Monday'},
+  2: {nameShort: 'Tue', nameFull: 'Tuesday'},
+  3: {nameShort: 'Wed', nameFull: 'Wednesday'},
+  4: {nameShort: 'Thu', nameFull: 'Thursday'},
+  5: {nameShort: 'Fri', nameFull: 'Friday'},
+  6: {nameShort: 'Sat', nameFull: 'Saturday'},
 };
 
 export interface ICalendarDataMonthName {
-  shortName: string;
-  fullName: string;
+  nameShort: string;
+  nameFull: string;
 }
 
 
@@ -105,18 +114,18 @@ export interface ICalendarDataMonthsNamesDictionary extends ICalendarDataDiction
 }
 
 const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDictionary = {
-  0: {shortName: 'Jan', fullName: 'January'},
-  1: {shortName: 'Feb', fullName: 'February'},
-  2: {shortName: 'Mar', fullName: 'March'},
-  3: {shortName: 'Apr', fullName: 'April'},
-  4: {shortName: 'May', fullName: 'May'},
-  5: {shortName: 'Jun', fullName: 'June'},
-  6: {shortName: 'Jul', fullName: 'July'},
-  7: {shortName: 'Aug', fullName: 'August'},
-  8: {shortName: 'Sep', fullName: 'September'},
-  9: {shortName: 'Oct', fullName: 'October'},
-  10: {shortName: 'Nov', fullName: 'November'},
-  11: {shortName: 'Dec', fullName: 'December'},
+  0: {nameShort: 'Jan', nameFull: 'January'},
+  1: {nameShort: 'Feb', nameFull: 'February'},
+  2: {nameShort: 'Mar', nameFull: 'March'},
+  3: {nameShort: 'Apr', nameFull: 'April'},
+  4: {nameShort: 'May', nameFull: 'May'},
+  5: {nameShort: 'Jun', nameFull: 'June'},
+  6: {nameShort: 'Jul', nameFull: 'July'},
+  7: {nameShort: 'Aug', nameFull: 'August'},
+  8: {nameShort: 'Sep', nameFull: 'September'},
+  9: {nameShort: 'Oct', nameFull: 'October'},
+  10: {nameShort: 'Nov', nameFull: 'November'},
+  11: {nameShort: 'Dec', nameFull: 'December'},
 };
 
 
@@ -132,8 +141,11 @@ export class CalendarData {
     weekNumberAdjust: false,
   };
 
+  private monthsList: ICalendarDataMonthsListItem[] = [];
+
   constructor(config?: ICalendarDataConfiguration) {
     this.overrideCalendarDataConfiguration(config);
+    this.monthsList = this.generateMonthsList();
     console.log('THIS', this);
   }
 
@@ -178,8 +190,8 @@ export class CalendarData {
     const monthDaysWithPadding: Array<ICalendarDataDay | null> = [...paddingStartDays, ...monthDays, ...paddingEndDays];
 
     const result: ICalendarDataMonth = {
-      shortName: this.getMonthShortName(verifiedMonthIndex),
-      fullName: this.getMonthFullName(verifiedMonthIndex),
+      nameShort: this.getMonthNameShort(verifiedMonthIndex),
+      nameFull: this.getMonthNameFull(verifiedMonthIndex),
       monthNumber: verifiedMonthIndex + 1,
       monthIndex: verifiedMonthIndex,
       year: verifiedYear,
@@ -216,16 +228,16 @@ export class CalendarData {
       result.push({
         dayOfMonth: dayNumber,
         dayOfWeek,
-        dayShortName: this.getWeekdayShortName(dayOfWeek),
-        dayName: this.getWeekdayFullName(dayOfWeek),
+        dayNameShort: this.getWeekdayNameShort(dayOfWeek),
+        dayName: this.getWeekdayNameFull(dayOfWeek),
         localeDate: new Date(tmpDate),
         dateIso: tmpDate.toISOString(),
         timestamp: tmpDate.getTime(),
         year: verifiedYear,
         monthNumber: verifiedMonthIndex + 1,
         monthIndex: verifiedMonthIndex,
-        monthShortName: this.getMonthShortName(verifiedMonthIndex),
-        monthFullName: this.getMonthFullName(verifiedMonthIndex),
+        monthNameShort: this.getMonthNameShort(verifiedMonthIndex),
+        monthNameFull: this.getMonthNameFull(verifiedMonthIndex),
       });
     }
 
@@ -308,20 +320,20 @@ export class CalendarData {
 
   // Helpers
   // ---------------------------------------------------------------------------
-  private getWeekdayShortName(weekdayIndex: number): string {
-    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].shortName;
+  private getWeekdayNameShort(weekdayIndex: number): string {
+    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].nameShort;
   }
 
-  private getWeekdayFullName(weekdayIndex: number): string {
-    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].fullName;
+  private getWeekdayNameFull(weekdayIndex: number): string {
+    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].nameFull;
   }
 
-  private getMonthShortName(monthIndex: number): string {
-    return this.calendarDataConfig.dictionaryMonths[monthIndex].shortName;
+  private getMonthNameShort(monthIndex: number): string {
+    return this.calendarDataConfig.dictionaryMonths[monthIndex].nameShort;
   }
 
-  private getMonthFullName(monthIndex: number): string {
-    return this.calendarDataConfig.dictionaryMonths[monthIndex].fullName;
+  private getMonthNameFull(monthIndex: number): string {
+    return this.calendarDataConfig.dictionaryMonths[monthIndex].nameFull;
   }
 
   private overrideWeekdaysDictionary(dictionaryOfWeekdays: ICalendarDataWeekdaysDictionary): void {
@@ -378,5 +390,24 @@ export class CalendarData {
       }
     });
     return [...start, ...end];
+  }
+
+  private generateMonthsList(): ICalendarDataMonthsListItem[] {
+    const result: ICalendarDataMonthsListItem[] = [];
+
+    Object.keys(this.calendarDataConfig.dictionaryMonths).forEach((keyStr: string) => {
+      const key: number = Number(keyStr);
+      const tmpItem: ICalendarDataMonthsListItem = {
+        monthIndex: key,
+        nameShort: this.calendarDataConfig.dictionaryMonths[key].nameShort,
+        nameFull: this.calendarDataConfig.dictionaryMonths[key].nameFull,
+        orgNameShort: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY[key].nameShort,
+        orgNameFull: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY[key].nameFull,
+      };
+
+      result.push(tmpItem);
+    });
+
+    return result;
   }
 }

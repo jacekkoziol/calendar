@@ -12,28 +12,28 @@ import {Calendar, ICalendarConfiguration} from './components/calendar';
 console.log('Works');
 
 export const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL: ICalendarDataMonthsNamesDictionary = {
-  0: {shortName: 'Sty', fullName: 'Styczeń'},
-  1: {shortName: 'Lut', fullName: 'Luty'},
-  2: {shortName: 'Mar', fullName: 'Marzec'},
-  3: {shortName: 'Kwi', fullName: 'Kwiecień'},
-  4: {shortName: 'Maj', fullName: 'Maj'},
-  5: {shortName: 'Cze', fullName: 'Czerwiec'},
-  6: {shortName: 'Lip', fullName: 'Lipiec'},
-  7: {shortName: 'Sie', fullName: 'Sierpień'},
-  8: {shortName: 'Wrz', fullName: 'Wrzesień'},
-  9: {shortName: 'Paź', fullName: 'Październik'},
-  10: {shortName: 'Lis', fullName: 'Listopad'},
-  11: {shortName: 'Gru', fullName: 'Grudzień'},
+  0: {nameShort: 'Sty', nameFull: 'Styczeń'},
+  1: {nameShort: 'Lut', nameFull: 'Luty'},
+  2: {nameShort: 'Mar', nameFull: 'Marzec'},
+  3: {nameShort: 'Kwi', nameFull: 'Kwiecień'},
+  4: {nameShort: 'Maj', nameFull: 'Maj'},
+  5: {nameShort: 'Cze', nameFull: 'Czerwiec'},
+  6: {nameShort: 'Lip', nameFull: 'Lipiec'},
+  7: {nameShort: 'Sie', nameFull: 'Sierpień'},
+  8: {nameShort: 'Wrz', nameFull: 'Wrzesień'},
+  9: {nameShort: 'Paź', nameFull: 'Październik'},
+  10: {nameShort: 'Lis', nameFull: 'Listopad'},
+  11: {nameShort: 'Gru', nameFull: 'Grudzień'},
 };
 
 export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDictionary = {
-  0: {shortName: 'Nie', fullName: 'Niedziela'},
-  1: {shortName: 'Pon', fullName: 'Poniedziałek'},
-  2: {shortName: 'Wto', fullName: 'Wtorek'},
-  3: {shortName: 'Śro', fullName: 'Środa'},
-  4: {shortName: 'Czw', fullName: 'Czwartek'},
-  5: {shortName: 'Pią', fullName: 'Piątek'},
-  6: {shortName: 'Sob', fullName: 'Sobota'},
+  0: {nameShort: 'Nie', nameFull: 'Niedziela'},
+  1: {nameShort: 'Pon', nameFull: 'Poniedziałek'},
+  2: {nameShort: 'Wto', nameFull: 'Wtorek'},
+  3: {nameShort: 'Śro', nameFull: 'Środa'},
+  4: {nameShort: 'Czw', nameFull: 'Czwartek'},
+  5: {nameShort: 'Pią', nameFull: 'Piątek'},
+  6: {nameShort: 'Sob', nameFull: 'Sobota'},
 };
 
 const calendarDataConfiguration: ICalendarDataConfiguration = {
