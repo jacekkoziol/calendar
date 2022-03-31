@@ -44,6 +44,7 @@ export interface ICalendarDataMonth {
  * @property {boolean} weekNumberAdjust
  */
 export interface ICalendarDataConfiguration {
+  [key: string]: any;
   startWeekWithDay?: number;
   dictionaryMonths?: ICalendarDataMonthsNamesDictionary;
   dictionaryWeekdays?: ICalendarDataWeekdaysDictionary;
@@ -123,19 +124,16 @@ const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY: ICalendarDataMonthsNamesDictionary 
  * CalendarDate generates data for the calendars needs
  */
 export class CalendarData {
-  private weekdaysDictionary: ICalendarDataWeekdaysDictionary = JSON.parse(JSON.stringify(CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY));
-  private monthsDictionary: ICalendarDataMonthsNamesDictionary = JSON.parse(JSON.stringify(CALENDAR_DATA_MONTHS_NAMES_DICTIONARY));
-  private startWeekWithDayIndex: number = 0;
-  private fillWeekMissingDaysWithDaysFromAdjacentMonths: boolean = false;
-  private weekNumberAdjust: boolean = false;
+  private calendarDataConfig: ICalendarDataConfiguration = {
+    dictionaryMonths: JSON.parse(JSON.stringify(CALENDAR_DATA_MONTHS_NAMES_DICTIONARY)),
+    dictionaryWeekdays: JSON.parse(JSON.stringify(CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY)),
+    startWeekWithDay: 0,
+    fillWeekMissingDaysWithDaysFromAdjacentMonths: false,
+    weekNumberAdjust: false,
+  };
 
   constructor(config?: ICalendarDataConfiguration) {
-    this.overrideMonthsDictionary(config?.dictionaryMonths);
-    this.overrideWeekdaysDictionary(config?.dictionaryWeekdays);
-    this.startWeekWithDayIndex = config?.startWeekWithDay || 0;
-    this.fillWeekMissingDaysWithDaysFromAdjacentMonths = config?.fillWeekMissingDaysWithDaysFromAdjacentMonths || false;
-    this.weekNumberAdjust = config?.weekNumberAdjust || false;
-
+    this.overrideCalendarDataConfiguration(config);
     console.log('THIS', this);
   }
 
@@ -151,8 +149,8 @@ export class CalendarData {
   public createMonthAsWeeks(
     monthIndex: number,
     year: number,
-    weekStartsFromDayIndex: number = this.startWeekWithDayIndex,
-    fillMissingDaysWithDaysFromAdjacentMonths: boolean = this.fillWeekMissingDaysWithDaysFromAdjacentMonths,
+    weekStartsFromDayIndex: number = this.calendarDataConfig.startWeekWithDay,
+    fillMissingDaysWithDaysFromAdjacentMonths: boolean = this.calendarDataConfig.fillWeekMissingDaysWithDaysFromAdjacentMonths,
   ): ICalendarDataMonth {
     const tmpDate: Date = new Date(year, monthIndex, 1);
     // We need to get month index and year from the date
@@ -281,7 +279,7 @@ export class CalendarData {
    * @param {number} weekNumberAdjust It allow to increase the week number
    * @return {number} The number of the week for a given date
    */
-  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.weekNumberAdjust): number {
+  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.calendarDataConfig.weekNumberAdjust): number {
     const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
     const calculatedDateNumberOfDaysFromBeginning: number =
       Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000)) - dayOffset;
@@ -311,19 +309,19 @@ export class CalendarData {
   // Helpers
   // ---------------------------------------------------------------------------
   private getWeekdayShortName(weekdayIndex: number): string {
-    return this.weekdaysDictionary[weekdayIndex].shortName;
+    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].shortName;
   }
 
   private getWeekdayFullName(weekdayIndex: number): string {
-    return this.weekdaysDictionary[weekdayIndex].fullName;
+    return this.calendarDataConfig.dictionaryWeekdays[weekdayIndex].fullName;
   }
 
   private getMonthShortName(monthIndex: number): string {
-    return this.monthsDictionary[monthIndex].shortName;
+    return this.calendarDataConfig.dictionaryMonths[monthIndex].shortName;
   }
 
   private getMonthFullName(monthIndex: number): string {
-    return this.monthsDictionary[monthIndex].fullName;
+    return this.calendarDataConfig.dictionaryMonths[monthIndex].fullName;
   }
 
   private overrideWeekdaysDictionary(dictionaryOfWeekdays: ICalendarDataWeekdaysDictionary): void {
@@ -331,9 +329,9 @@ export class CalendarData {
       return;
     }
 
-    for (const weekIndex in this.weekdaysDictionary) {
-      if (this.weekdaysDictionary.hasOwnProperty(weekIndex) && weekIndex in dictionaryOfWeekdays) {
-        this.weekdaysDictionary[weekIndex] = dictionaryOfWeekdays[weekIndex];
+    for (const weekIndex in this.calendarDataConfig.dictionaryWeekdays) {
+      if (this.calendarDataConfig.dictionaryWeekdays.hasOwnProperty(weekIndex) && weekIndex in dictionaryOfWeekdays) {
+        this.calendarDataConfig.dictionaryWeekdays[weekIndex] = dictionaryOfWeekdays[weekIndex];
       }
     }
   }
@@ -343,9 +341,26 @@ export class CalendarData {
       return;
     }
 
-    for (const monthIndex in this.monthsDictionary) {
-      if (this.monthsDictionary.hasOwnProperty(monthIndex) && monthIndex in dictionaryOfMonths) {
-        this.monthsDictionary[monthIndex] = dictionaryOfMonths[monthIndex];
+    for (const monthIndex in this.calendarDataConfig.dictionaryMonths) {
+      if (this.calendarDataConfig.dictionaryMonths.hasOwnProperty(monthIndex) && monthIndex in dictionaryOfMonths) {
+        this.calendarDataConfig.dictionaryMonths[monthIndex] = dictionaryOfMonths[monthIndex];
+      }
+    }
+  }
+
+  private overrideCalendarDataConfiguration(newConfig: ICalendarDataConfiguration): void {
+    if (!newConfig) {
+      return;
+    }
+
+    this.overrideMonthsDictionary(newConfig?.dictionaryMonths);
+    this.overrideWeekdaysDictionary(newConfig?.dictionaryWeekdays);
+
+    for (const prop in newConfig) {
+      if (prop in this.calendarDataConfig && this.calendarDataConfig.hasOwnProperty(prop)) {
+        if (prop !== 'dictionaryMonths' && prop !== 'dictionaryWeekdays') {
+          this.calendarDataConfig[prop] = newConfig[prop];
+        }
       }
     }
   }
@@ -354,12 +369,12 @@ export class CalendarData {
     const startFromDayIndex: number = weekStartsFromDayIndex % 7;
     const start: ICalendarDataWeekdayName[] = [];
     const end: ICalendarDataWeekdayName[] = [];
-    Object.keys(this.weekdaysDictionary).forEach((key: string) => {
+    Object.keys(this.calendarDataConfig.dictionaryWeekdays).forEach((key: string) => {
       const numKey: number = Number(key);
       if (numKey >= startFromDayIndex) {
-        start.push(this.weekdaysDictionary[numKey]);
+        start.push(this.calendarDataConfig.dictionaryWeekdays[numKey]);
       } else {
-        end.push(this.weekdaysDictionary[numKey]);
+        end.push(this.calendarDataConfig.dictionaryWeekdays[numKey]);
       }
     });
     return [...start, ...end];

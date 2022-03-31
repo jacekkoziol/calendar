@@ -1,4 +1,11 @@
-import {CalendarData, ICalendarDataConfiguration, ICalendarDataDay, ICalendarDataMonth, ICalendarDataWeek, ICalendarDataWeekdayName} from '../classes/calendar-data';
+import {
+  CalendarData,
+  ICalendarDataConfiguration,
+  ICalendarDataDay,
+  ICalendarDataMonth,
+  ICalendarDataWeek,
+  ICalendarDataWeekdayName,
+} from '../classes/calendar-data';
 
 export interface ICalendarConfiguration {
   [key: string]: any;
@@ -14,7 +21,7 @@ export class Calendar extends CalendarData {
   private calendarMonth: HTMLDivElement;
   private calendarMonthTable: HTMLTableElement;
 
-  private config: ICalendarConfiguration = {
+  private calendarConfig: ICalendarConfiguration = {
     showWeekNumbers: false,
   };
 
@@ -58,7 +65,7 @@ export class Calendar extends CalendarData {
     this.calendarContainer.append(this.calendarNavigation, this.calendarMonth);
   }
 
-  private createMonthTemplate(showWeekNumber: boolean = this.config.showWeekNumbers): void {
+  private createMonthTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): void {
     // Table
     const monthTable: HTMLTableElement = document.createElement('table');
     monthTable.className = 'cal__MonthTable';
@@ -88,7 +95,7 @@ export class Calendar extends CalendarData {
 
     // Table Body
     const monthTableBody: HTMLTableSectionElement = document.createElement('tbody');
-    monthTableHead.className = 'cal__MonthTableBody';
+    monthTableBody.className = 'cal__MonthTableBody';
 
     this.calendarDataMonth.weeks.forEach((week: ICalendarDataWeek) => {
       const row: HTMLTableRowElement = document.createElement('tr');
@@ -147,14 +154,20 @@ export class Calendar extends CalendarData {
     monthTable.append(monthTableHead, monthTableBody);
 
     // this.calendarMonth.removeChild(this.calendarMonthTable);
+    // this.calendarMonth.appendChild(monthTable);
+    // this.calendarMonthTable = monthTable;
     this.calendarMonthTable = monthTable;
     this.calendarMonth.appendChild(this.calendarMonthTable);
   }
 
   private overrideConfiguration(newConfig: ICalendarConfiguration): void {
+    if (!newConfig) {
+      return;
+    }
+
     for (const prop in newConfig) {
-      if (prop in this.config && this.config.hasOwnProperty(prop)) {
-        this.config[prop] = newConfig[prop];
+      if (prop in this.calendarConfig && this.calendarConfig.hasOwnProperty(prop)) {
+        this.calendarConfig[prop] = newConfig[prop];
       }
     }
   }
