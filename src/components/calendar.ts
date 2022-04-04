@@ -12,16 +12,16 @@ export interface ICalendarConfiguration {
   showWeekNumbers?: boolean
 }
 
-interface HTMLTableCellElementCustom extends HTMLTableCellElement {
-  calendarDataDay?: ICalendarDataDay,
-}
-
-// declare global {
-//   // eslint-disable-next-line no-unused-vars
-//   interface HTMLTableCellElement {
-//     calendarDataDay: ICalendarDataDay,
-//   }
+// interface HTMLTableCellElementCustom extends HTMLTableCellElement {
+//   calendarDataDay?: ICalendarDataDay,
 // }
+
+declare global {
+  // eslint-disable-next-line no-unused-vars
+  interface HTMLTableCellElement {
+    calendarDataDay: ICalendarDataDay,
+  }
+}
 
 
 export class Calendar extends CalendarData {
@@ -131,9 +131,10 @@ export class Calendar extends CalendarData {
 
       // Create days of the week
       week.weekDays.forEach((day: ICalendarDataDay | null) => {
-        // const tmpTd: HTMLTableCellElement = document.createElement('td');
-        const tmpTd: HTMLTableCellElementCustom = document.createElement('td');
-        tmpTd.calendarDataDay = day;
+        const tmpTd: HTMLTableCellElement = document.createElement('td');
+        HTMLTableCellElement.prototype.calendarDataDay = day;
+        // const tmpTd: HTMLTableCellElementCustom = document.createElement('td');
+        // tmpTd.calendarDataDay = day;
         tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--weekday';
 
         if (day) {
