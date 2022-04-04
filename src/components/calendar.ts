@@ -16,6 +16,14 @@ interface HTMLTableCellElementCustom extends HTMLTableCellElement {
   calendarDataDay?: ICalendarDataDay,
 }
 
+// declare global {
+//   // eslint-disable-next-line no-unused-vars
+//   interface HTMLTableCellElement {
+//     calendarDataDay: ICalendarDataDay,
+//   }
+// }
+
+
 export class Calendar extends CalendarData {
   private calendarDataMonth: ICalendarDataMonth;
   private currentDate: Date = new Date();
