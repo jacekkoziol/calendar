@@ -12,6 +12,10 @@ export interface ICalendarConfiguration {
   showWeekNumbers?: boolean
 }
 
+interface HTMLTableCellElementCustom extends HTMLTableCellElement {
+  calendarDataDay?: ICalendarDataDay,
+}
+
 export class Calendar extends CalendarData {
   private calendarDataMonth: ICalendarDataMonth;
   private currentDate: Date = new Date();
@@ -119,7 +123,9 @@ export class Calendar extends CalendarData {
 
       // Create days of the week
       week.weekDays.forEach((day: ICalendarDataDay | null) => {
-        const tmpTd: HTMLTableCellElement = document.createElement('td');
+        // const tmpTd: HTMLTableCellElement = document.createElement('td');
+        const tmpTd: HTMLTableCellElementCustom = document.createElement('td');
+        tmpTd.calendarDataDay = day;
         tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--weekday';
 
         if (day) {
@@ -127,6 +133,7 @@ export class Calendar extends CalendarData {
           const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
           const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
           const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
+          // tmpTd.prototype.calendarDataDay = day;
 
           if (isDayOtherMonth) {
             tmpTd.classList.add('is-for-other-month');
