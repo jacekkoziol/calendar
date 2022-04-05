@@ -20,6 +20,10 @@
   width: 100%;
 }
 
+.cal__MonthTableBody__td-span {
+  pointer-events: none;
+}
+
 .cal__MonthTableBody__td-span--week-no{
   font-size: 11px;
   color: #777;

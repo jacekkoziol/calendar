@@ -141,7 +141,7 @@ export class CalendarData {
     weekNumberAdjust: false,
   };
 
-  private monthsList: ICalendarDataMonthsListItem[] = [];
+  protected monthsList: ICalendarDataMonthsListItem[] = [];
 
   constructor(config?: ICalendarDataConfiguration) {
     this.overrideCalendarDataConfiguration(config);

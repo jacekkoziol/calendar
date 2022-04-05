@@ -3,6 +3,7 @@ import {
   ICalendarDataConfiguration,
   ICalendarDataDay,
   ICalendarDataMonth,
+  ICalendarDataMonthsListItem,
   ICalendarDataWeek,
   ICalendarDataWeekdayName,
 } from '../classes/calendar-data';
@@ -36,6 +37,12 @@ export class Calendar extends CalendarData {
   private htmlCalendarMonth: HTMLDivElement;
   private htmlCalendarMonthTable: HTMLTableElement;
 
+  private htmlCalendarNavigationMonthSelect: HTMLSelectElement;
+  private htmlCalendarNavigationYearSelect: HTMLSelectElement;
+
+  private selectedMonthIndex: number;
+  private selectedYear: number;
+
   private calendarConfig: ICalendarConfiguration = {
     showWeekNumbers: false,
   };
@@ -45,7 +52,6 @@ export class Calendar extends CalendarData {
     configCalendar?: ICalendarConfiguration,
     configCalendarData?: ICalendarDataConfiguration) {
     super(configCalendarData);
-    this.currentDate.setHours(0, 0, 0, 0);
     this.overrideConfiguration(configCalendar);
 
     // this.calendarMothsOptions = this.generateMothsOptionsList();
@@ -64,9 +70,19 @@ export class Calendar extends CalendarData {
       throw new Error('Main calendar container Not Found!');
     }
 
+    this.currentDate.setHours(0, 0, 0, 0);
+    // this.calendarDataMonth = this.createMonthAsWeeks(this.currentDate.getMonth(), this.currentDate.getFullYear());
+
+    this.selectedMonthIndex = this.currentDate.getMonth();
+    this.selectedYear = this.currentDate.getFullYear();
+
     this.createCalendarTemplate();
     mainCalendarContainer.appendChild(this.htmlCalendarContainer);
-    this.createMonthTemplate();
+    this.showMonth(this.selectedMonthIndex, this.selectedYear);
+    // this.createMonthTemplate();
+    this.createCalendarNavigation();
+    this.initCalendarNavigationEventsHandler();
+    this.initCalendarMonthEventHandler();
   }
 
   private createCalendarTemplate(): void {
@@ -82,7 +98,7 @@ export class Calendar extends CalendarData {
     this.htmlCalendarContainer.append(this.htmlCalendarNavigation, this.htmlCalendarMonth);
   }
 
-  private createMonthTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): void {
+  private createMonthTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): HTMLTableElement {
     // Table
     const monthTable: HTMLTableElement = document.createElement('table');
     monthTable.className = 'cal__MonthTable';
@@ -134,10 +150,8 @@ export class Calendar extends CalendarData {
       // Create days of the week
       week.weekDays.forEach((day: ICalendarDataDay | null) => {
         const tmpTd: HTMLTableCellElement = document.createElement('td');
-        HTMLTableCellElement.prototype.calendarDataDay = day;
         HTMLTableCellElement.prototype.calendarInstance = () => this;
-        // const tmpTd: HTMLTableCellElementCustom = document.createElement('td');
-        // tmpTd.calendarDataDay = day;
+        tmpTd.calendarDataDay = day;
         tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--weekday';
 
         if (day) {
@@ -174,14 +188,104 @@ export class Calendar extends CalendarData {
 
 
     monthTable.append(monthTableHead, monthTableBody);
-
-    // this.calendarMonth.removeChild(this.calendarMonthTable);
-    // this.calendarMonth.appendChild(monthTable);
-    // this.calendarMonthTable = monthTable;
-    this.htmlCalendarMonthTable = monthTable;
-    this.htmlCalendarMonth.appendChild(this.htmlCalendarMonthTable);
+    return monthTable;
   }
 
+  // Calendar Navigation
+  // ---------------------------------------------------------------------------
+  private createCalendarNavigation(): void {
+    // Month Selector
+    const selectMonth: HTMLSelectElement = document.createElement('select');
+
+    this.monthsList.forEach((month: ICalendarDataMonthsListItem) => {
+      const tmpOption: HTMLOptionElement = document.createElement('option');
+      tmpOption.value = String(month.monthIndex);
+      tmpOption.text = month.nameFull;
+
+      if (month.monthIndex === this.selectedMonthIndex) {
+        tmpOption.selected = true;
+      }
+
+      selectMonth.add(tmpOption);
+    });
+
+    this.htmlCalendarNavigationMonthSelect = selectMonth;
+    this.htmlCalendarNavigation.append(selectMonth);
+
+    // Year Selector
+    const selectYear: HTMLSelectElement = document.createElement('select');
+    const yearsStart: number = this.currentDate.getFullYear() + 5;
+    const yearsEnd: number = yearsStart - 100;
+
+    for (let year: number = yearsStart; year >= yearsEnd; year--) {
+      const tmpOption: HTMLOptionElement = document.createElement('option');
+      tmpOption.value = String(year);
+      tmpOption.text = String(year);
+
+      if (year === this.selectedYear) {
+        tmpOption.selected = true;
+      }
+
+      selectYear.add(tmpOption);
+    }
+
+    this.htmlCalendarNavigationYearSelect = selectYear;
+    this.htmlCalendarNavigation.append(selectYear);
+  }
+
+  //
+  // ---------------------------------------------------------------------------
+  private showMonth(monthIndex: number = this.selectedMonthIndex, year: number = this.selectedYear): void {
+    console.log('Show month', monthIndex, year);
+    this.calendarDataMonth = this.createMonthAsWeeks(monthIndex, year);
+    const tmpMonthTable: HTMLTableElement = this.createMonthTemplate();
+    if (this.htmlCalendarMonthTable) {
+      this.htmlCalendarMonth.removeChild(this.htmlCalendarMonthTable);
+    }
+    this.htmlCalendarMonthTable = this.htmlCalendarMonth.appendChild(tmpMonthTable);
+  }
+
+  // Calendar Navigation Actions
+  // ---------------------------------------------------------------------------
+  private initCalendarNavigationEventsHandler(): void {
+    this.htmlCalendarNavigationMonthSelect.addEventListener('change', (e: Event) => {
+      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
+      this.selectedMonthIndex = Number(tmpSelect.value);
+      this.showMonth(this.selectedMonthIndex, this.selectedYear);
+    }, false);
+
+    this.htmlCalendarNavigationYearSelect.addEventListener('change', (e: Event) => {
+      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
+      this.selectedYear = Number(tmpSelect.value);
+      this.showMonth(this.selectedMonthIndex, this.selectedYear);
+    }, false);
+  }
+
+  // Calendar Month Actions
+  // ---------------------------------------------------------------------------
+  private initCalendarMonthEventHandler(): void {
+    this.htmlCalendarMonth.addEventListener('click', (e: PointerEvent) => {
+      const tmpDay: HTMLTableCellElement = this.getEventTarget(e) as HTMLTableCellElement;
+      console.log(tmpDay);
+
+      if (tmpDay.classList.contains('cal__MonthTableBody__td--weekday')) {
+        console.log('Allow return value');
+        console.log(tmpDay.calendarDataDay);
+
+        this.selectedMonthIndex = tmpDay.calendarDataDay.monthIndex;
+        this.selectedYear = tmpDay.calendarDataDay.year;
+
+        this.htmlCalendarNavigationMonthSelect.value = String(this.selectedMonthIndex);
+        this.htmlCalendarNavigationYearSelect.value = String(this.selectedYear);
+
+        // this.showMonth();
+      }
+    }, false);
+  }
+
+
+  // Configuration
+  // ---------------------------------------------------------------------------
   private overrideConfiguration(newConfig: ICalendarConfiguration): void {
     if (!newConfig) {
       return;
@@ -191,6 +295,20 @@ export class Calendar extends CalendarData {
       if (prop in this.calendarConfig && this.calendarConfig.hasOwnProperty(prop)) {
         this.calendarConfig[prop] = newConfig[prop];
       }
+    }
+  }
+
+  // Utilities
+  // ---------------------------------------------------------------------------
+  private getEventTarget(event: Event): EventTarget | null {
+    try {
+      if (typeof event.composedPath === 'function') {
+        const path = event.composedPath();
+        return path[0];
+      }
+      return event.target;
+    } catch (error) {
+      return event.target;
     }
   }
 }
