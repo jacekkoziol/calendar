@@ -20,6 +20,7 @@ declare global {
   // eslint-disable-next-line no-unused-vars
   interface HTMLTableCellElement {
     calendarDataDay: ICalendarDataDay,
+    calendarInstance: () => Calendar
   }
 }
 
@@ -44,6 +45,7 @@ export class Calendar extends CalendarData {
     configCalendar?: ICalendarConfiguration,
     configCalendarData?: ICalendarDataConfiguration) {
     super(configCalendarData);
+    this.currentDate.setHours(0, 0, 0, 0);
     this.overrideConfiguration(configCalendar);
 
     // this.calendarMothsOptions = this.generateMothsOptionsList();
@@ -133,6 +135,7 @@ export class Calendar extends CalendarData {
       week.weekDays.forEach((day: ICalendarDataDay | null) => {
         const tmpTd: HTMLTableCellElement = document.createElement('td');
         HTMLTableCellElement.prototype.calendarDataDay = day;
+        HTMLTableCellElement.prototype.calendarInstance = () => this;
         // const tmpTd: HTMLTableCellElementCustom = document.createElement('td');
         // tmpTd.calendarDataDay = day;
         tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--weekday';
