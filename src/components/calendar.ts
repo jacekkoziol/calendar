@@ -76,16 +76,16 @@ export class Calendar extends CalendarData {
     this.selectedMonthIndex = this.currentDate.getMonth();
     this.selectedYear = this.currentDate.getFullYear();
 
-    this.createCalendarTemplate();
-    mainCalendarContainer.appendChild(this.htmlCalendarContainer);
-    this.showMonth(this.selectedMonthIndex, this.selectedYear);
-    // this.createMonthTemplate();
+    this.createCalendarCoreTemplate();
     this.createCalendarNavigation();
-    this.initCalendarNavigationEventsHandler();
+    mainCalendarContainer.appendChild(this.htmlCalendarContainer);
+
+
+    this.showMonth(this.selectedMonthIndex, this.selectedYear);
     this.initCalendarMonthEventHandler();
   }
 
-  private createCalendarTemplate(): void {
+  private createCalendarCoreTemplate(): void {
     this.htmlCalendarContainer = document.createElement('div');
     this.htmlCalendarContainer.className = 'cal__Container';
 
@@ -98,12 +98,17 @@ export class Calendar extends CalendarData {
     this.htmlCalendarContainer.append(this.htmlCalendarNavigation, this.htmlCalendarMonth);
   }
 
-  private createMonthTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): HTMLTableElement {
+  private createMonthTableTemplate(showWeekNumber: boolean = this.calendarConfig.showWeekNumbers): HTMLTableElement {
     // Table
     const monthTable: HTMLTableElement = document.createElement('table');
     monthTable.className = 'cal__MonthTable';
+    const monthTableHead: HTMLTableSectionElement = this.createMonthTableTemplateHead(showWeekNumber);
+    const monthTableBody: HTMLTableSectionElement = this.createMonthTableTemplateBody(showWeekNumber);
+    monthTable.append(monthTableHead, monthTableBody);
+    return monthTable;
+  }
 
-    // Table Head
+  private createMonthTableTemplateHead(addWeekNumberColumn: boolean): HTMLTableSectionElement {
     const monthTableHead: HTMLTableSectionElement = document.createElement('thead');
     monthTableHead.className = 'cal__MonthTableHead';
 
@@ -119,14 +124,17 @@ export class Calendar extends CalendarData {
       monthTableHead.appendChild(tmpTh);
     });
 
-    if (showWeekNumber) {
+    if (addWeekNumberColumn) {
       const tmpTh: HTMLTableCellElement = document.createElement('th');
       tmpTh.className = 'cal__MonthTableHead__th cal__MonthTableHead__th--empty';
 
       monthTableHead.prepend(tmpTh);
     }
 
-    // Table Body
+    return monthTableHead;
+  }
+
+  private createMonthTableTemplateBody(addWeekNumberColumn: boolean): HTMLTableSectionElement {
     const monthTableBody: HTMLTableSectionElement = document.createElement('tbody');
     monthTableBody.className = 'cal__MonthTableBody';
 
@@ -134,15 +142,13 @@ export class Calendar extends CalendarData {
       const row: HTMLTableRowElement = document.createElement('tr');
       row.className = 'cal__MonthTableBody__tr';
 
-      // Create Week Number Cell
-      if (showWeekNumber) {
+      if (addWeekNumberColumn) {
         const tmpTd: HTMLTableCellElement = document.createElement('td');
         tmpTd.className = 'cal__MonthTableBody__td cal__MonthTableBody__td--week-no';
 
         const tmpSpan: HTMLSpanElement = document.createElement('span');
         tmpSpan.className = 'cal__MonthTableBody__td-span cal__MonthTableBody__td-span--week-no';
         tmpSpan.textContent = `${week.weekNumber}`;
-        // tmpTd.
         tmpTd.appendChild(tmpSpan);
         row.appendChild(tmpTd);
       }
@@ -159,7 +165,6 @@ export class Calendar extends CalendarData {
           const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
           const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
           const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
-          // tmpTd.prototype.calendarDataDay = day;
 
           if (isDayOtherMonth) {
             tmpTd.classList.add('is-for-other-month');
@@ -186,15 +191,25 @@ export class Calendar extends CalendarData {
       monthTableBody.append(row);
     });
 
-
-    monthTable.append(monthTableHead, monthTableBody);
-    return monthTable;
+    return monthTableBody;
   }
 
   // Calendar Navigation
   // ---------------------------------------------------------------------------
   private createCalendarNavigation(): void {
     // Month Selector
+    const selectMonth: HTMLSelectElement = this.createCalendarNavigationMonthSelector();
+    this.htmlCalendarNavigationMonthSelect = selectMonth;
+    this.htmlCalendarNavigation.append(selectMonth);
+
+    // Year Selector
+    const selectYear: HTMLSelectElement = this.createCalendarNavigationYearSelector();
+
+    this.htmlCalendarNavigationYearSelect = selectYear;
+    this.htmlCalendarNavigation.append(selectYear);
+  }
+
+  private createCalendarNavigationMonthSelector(): HTMLSelectElement {
     const selectMonth: HTMLSelectElement = document.createElement('select');
 
     this.monthsList.forEach((month: ICalendarDataMonthsListItem) => {
@@ -209,10 +224,17 @@ export class Calendar extends CalendarData {
       selectMonth.add(tmpOption);
     });
 
-    this.htmlCalendarNavigationMonthSelect = selectMonth;
-    this.htmlCalendarNavigation.append(selectMonth);
+    // Add Event Handler
+    selectMonth.addEventListener('change', (e: Event) => {
+      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
+      this.selectedMonthIndex = Number(tmpSelect.value);
+      this.showMonth(this.selectedMonthIndex, this.selectedYear);
+    }, false);
 
-    // Year Selector
+    return selectMonth;
+  }
+
+  private createCalendarNavigationYearSelector(): HTMLSelectElement {
     const selectYear: HTMLSelectElement = document.createElement('select');
     const yearsStart: number = this.currentDate.getFullYear() + 5;
     const yearsEnd: number = yearsStart - 100;
@@ -229,8 +251,14 @@ export class Calendar extends CalendarData {
       selectYear.add(tmpOption);
     }
 
-    this.htmlCalendarNavigationYearSelect = selectYear;
-    this.htmlCalendarNavigation.append(selectYear);
+    // Add Event Handler
+    selectYear.addEventListener('change', (e: Event) => {
+      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
+      this.selectedYear = Number(tmpSelect.value);
+      this.showMonth(this.selectedMonthIndex, this.selectedYear);
+    }, false);
+
+    return selectYear;
   }
 
   //
@@ -238,28 +266,13 @@ export class Calendar extends CalendarData {
   private showMonth(monthIndex: number = this.selectedMonthIndex, year: number = this.selectedYear): void {
     console.log('Show month', monthIndex, year);
     this.calendarDataMonth = this.createMonthAsWeeks(monthIndex, year);
-    const tmpMonthTable: HTMLTableElement = this.createMonthTemplate();
+    const tmpMonthTable: HTMLTableElement = this.createMonthTableTemplate();
     if (this.htmlCalendarMonthTable) {
       this.htmlCalendarMonth.removeChild(this.htmlCalendarMonthTable);
     }
     this.htmlCalendarMonthTable = this.htmlCalendarMonth.appendChild(tmpMonthTable);
   }
 
-  // Calendar Navigation Actions
-  // ---------------------------------------------------------------------------
-  private initCalendarNavigationEventsHandler(): void {
-    this.htmlCalendarNavigationMonthSelect.addEventListener('change', (e: Event) => {
-      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
-      this.selectedMonthIndex = Number(tmpSelect.value);
-      this.showMonth(this.selectedMonthIndex, this.selectedYear);
-    }, false);
-
-    this.htmlCalendarNavigationYearSelect.addEventListener('change', (e: Event) => {
-      const tmpSelect: HTMLSelectElement = this.getEventTarget(e) as HTMLSelectElement;
-      this.selectedYear = Number(tmpSelect.value);
-      this.showMonth(this.selectedMonthIndex, this.selectedYear);
-    }, false);
-  }
 
   // Calendar Month Actions
   // ---------------------------------------------------------------------------
