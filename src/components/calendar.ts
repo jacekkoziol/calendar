@@ -25,6 +25,15 @@ declare global {
   }
 }
 
+// export interface ICalendarCSS {
+//   calendarClassPrefix: string;
+//   calendarContainer: string;
+//   calendarNavigationContainer: string;
+//   calendarContentContainer: string;
+//   calendarContentTable: string;
+//   calendarContentTableHead: string;
+//   calendarContentTableBody: string;
+// }
 
 export class Calendar extends CalendarData {
   private calendarDataMonth: ICalendarDataMonth;
