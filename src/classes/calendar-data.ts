@@ -37,7 +37,7 @@ export interface ICalendarDataMonth {
 
 /**
  * @property {number} startWeekWithDay Set the day from which the week should start (0-based index, `0`- Sunday, `6`- Saturday)
- * @property {nuICalendarDataMonthsNamesDictionary} dictionaryMonths The dictionary/translation of Months names
+ * @property {ICalendarDataMonthsNamesDictionary} dictionaryMonths The dictionary/translation of Months names
  * @property {ICalendarDataWeekdaysDictionary} dictionaryWeekdays The dictionary/translation of Weekdays names
  * @property {boolean} fillWeekMissingDaysWithDaysFromAdjacentMonths Fill the first and last week of the month with days
  * from previous and next month, otherwise with `null` (Default `false`)
