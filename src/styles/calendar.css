@@ -22,6 +22,10 @@
   width: 100%;
 }
 
+.cal__MonthTableHead__th-abbr {
+  text-decoration: none;
+}
+
 .cal__MonthTableBody__td {
   color: var(--cal-dark)
 }

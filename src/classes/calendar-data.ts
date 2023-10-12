@@ -3,6 +3,12 @@
  * @property dayOfWeek The Number of the day in the week [0-based index] (0 - Sunday, 6 - Saturday )
  * @property dayShortName The Short Name of the day
  * @property dayShortName The full Name of the day
+ * @property localeDateWithTime The Date with time of current localization at the moment of calling the getDateWithCurrentTime() method
+ * otherwise `null`
+ * @property dateIsoWithTime The ISO Date with time of current localization at the moment of calling the getDateWithCurrentTime() method
+ * otherwise `null`
+ * @property getDateWithCurrentTime The method that is setting Date with current time of calling the getDateWithCurrentTime() method,
+ * it sets value for fields `localeDateWithTime` and `dateIsoWithTime`.
  */
 export interface ICalendarDataDay {
   dayOfMonth: number | null;
@@ -17,6 +23,14 @@ export interface ICalendarDataDay {
   monthIndex: number;
   monthNameShort: string;
   monthNameFull: string;
+  localeDateWithTime?: Date | null;
+  dateIsoWithTime?: string | null;
+  getDateWithCurrentTime: () => ICalendarDataDayDateWithTime
+}
+
+export interface ICalendarDataDayDateWithTime {
+  localeDateWithTime: Date | null;
+  dateIsoWithTime: string | null;
 }
 
 export interface ICalendarDataWeek {
@@ -238,6 +252,23 @@ export class CalendarData {
         monthIndex: verifiedMonthIndex,
         monthNameShort: this.getMonthNameShort(verifiedMonthIndex),
         monthNameFull: this.getMonthNameFull(verifiedMonthIndex),
+        localeDateWithTime: null, // new Date(),
+        dateIsoWithTime: null, // tmpDate.toISOString(),
+        getDateWithCurrentTime: function() {
+          const localeDateWithTime: Date = new Date();
+          localeDateWithTime.setFullYear(verifiedYear);
+          localeDateWithTime.setMonth(verifiedMonthIndex);
+          localeDateWithTime.setDate(dayNumber);
+
+          console.log('this', this);
+          this.localeDateWithTime = localeDateWithTime;
+          this.dateIsoWithTime = localeDateWithTime.toISOString();
+
+          return {
+            localeDateWithTime,
+            dateIsoWithTime: localeDateWithTime.toISOString(),
+          };
+        },
       });
     }
 

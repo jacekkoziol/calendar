@@ -125,8 +125,9 @@ export class Calendar extends CalendarData {
       const tmpTh: HTMLTableCellElement = document.createElement('th');
       tmpTh.className = 'cal__MonthTableHead__th';
 
-      const tmpSpan: HTMLSpanElement = document.createElement('span');
-      tmpSpan.className = 'cal__MonthTableHead__th-span';
+      const tmpSpan: HTMLSpanElement = document.createElement('abbr');
+      tmpSpan.title = item.nameFull;
+      tmpSpan.className = 'cal__MonthTableHead__th-abbr';
       tmpSpan.textContent = item.nameShort;
 
       tmpTh.appendChild(tmpSpan);
@@ -172,8 +173,30 @@ export class Calendar extends CalendarData {
         if (day) {
           tmpTd.classList.add(`cal__MonthTableBody__td--weekday-${day.dayOfWeek}`);
           const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
-          const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
-          const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
+          // const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
+          // const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
+
+          // const isDayPrevMonth: boolean =
+          //   day.year < this.calendarDataMonth.year ||
+          //   this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
+
+          const isDayPrevMonth: boolean =
+            day.year < this.calendarDataMonth.year ||
+            day.year === this.calendarDataMonth.year &&
+            day.monthIndex < this.calendarDataMonth.monthIndex;
+
+          const isDayNextMonth: boolean =
+            day.year > this.calendarDataMonth.year ||
+            day.year === this.calendarDataMonth.year &&
+            day.monthIndex > this.calendarDataMonth.monthIndex;
+
+          // console.log(day.year > this.calendarDataMonth.year);
+          // console.log(
+          //   day.year === this.calendarDataMonth.year &&
+          //   this.calendarDataMonth.monthIndex <=11 &&
+          //   day.monthIndex > this.calendarDataMonth.monthIndex,
+          // );
+          console.log(this.calendarDataMonth, day);
 
           if (isDayOtherMonth) {
             tmpTd.classList.add('is-for-other-month');
@@ -293,6 +316,7 @@ export class Calendar extends CalendarData {
       if (tmpDay.classList.contains('cal__MonthTableBody__td--weekday')) {
         console.log('Allow return value');
         console.log(tmpDay.calendarDataDay);
+        console.log(tmpDay.calendarDataDay.getDateWithCurrentTime());
 
         this.selectedMonthIndex = tmpDay.calendarDataDay.monthIndex;
         this.selectedYear = tmpDay.calendarDataDay.year;
