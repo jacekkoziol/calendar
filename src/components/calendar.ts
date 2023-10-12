@@ -173,13 +173,6 @@ export class Calendar extends CalendarData {
         if (day) {
           tmpTd.classList.add(`cal__MonthTableBody__td--weekday-${day.dayOfWeek}`);
           const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
-          // const isDayPrevMonth: boolean = this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
-          // const isDayNextMonth: boolean = this.calendarDataMonth.monthIndex <=10 && day.monthIndex > this.calendarDataMonth.monthIndex;
-
-          // const isDayPrevMonth: boolean =
-          //   day.year < this.calendarDataMonth.year ||
-          //   this.calendarDataMonth.monthIndex >=1 && day.monthIndex < this.calendarDataMonth.monthIndex;
-
           const isDayPrevMonth: boolean =
             day.year < this.calendarDataMonth.year ||
             day.year === this.calendarDataMonth.year &&
@@ -189,14 +182,6 @@ export class Calendar extends CalendarData {
             day.year > this.calendarDataMonth.year ||
             day.year === this.calendarDataMonth.year &&
             day.monthIndex > this.calendarDataMonth.monthIndex;
-
-          // console.log(day.year > this.calendarDataMonth.year);
-          // console.log(
-          //   day.year === this.calendarDataMonth.year &&
-          //   this.calendarDataMonth.monthIndex <=11 &&
-          //   day.monthIndex > this.calendarDataMonth.monthIndex,
-          // );
-          console.log(this.calendarDataMonth, day);
 
           if (isDayOtherMonth) {
             tmpTd.classList.add('is-for-other-month');

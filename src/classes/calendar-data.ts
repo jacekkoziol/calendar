@@ -25,7 +25,7 @@ export interface ICalendarDataDay {
   monthNameFull: string;
   localeDateWithTime?: Date | null;
   dateIsoWithTime?: string | null;
-  getDateWithCurrentTime: () => ICalendarDataDayDateWithTime
+  getDateWithCurrentTime: () => ICalendarDataDayDateWithTime;
 }
 
 export interface ICalendarDataDayDateWithTime {
@@ -252,15 +252,14 @@ export class CalendarData {
         monthIndex: verifiedMonthIndex,
         monthNameShort: this.getMonthNameShort(verifiedMonthIndex),
         monthNameFull: this.getMonthNameFull(verifiedMonthIndex),
-        localeDateWithTime: null, // new Date(),
-        dateIsoWithTime: null, // tmpDate.toISOString(),
+        localeDateWithTime: null,
+        dateIsoWithTime: null,
         getDateWithCurrentTime: function() {
           const localeDateWithTime: Date = new Date();
           localeDateWithTime.setFullYear(verifiedYear);
           localeDateWithTime.setMonth(verifiedMonthIndex);
           localeDateWithTime.setDate(dayNumber);
 
-          console.log('this', this);
           this.localeDateWithTime = localeDateWithTime;
           this.dateIsoWithTime = localeDateWithTime.toISOString();
 
