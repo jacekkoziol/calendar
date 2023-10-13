@@ -39,7 +39,7 @@ export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDi
 const calendarDataConfiguration: ICalendarDataConfiguration = {
   dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
-  startWeekWithDay: 0,
+  startWeekWithDay: 1,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: true,
   weekNumberAdjust: false,
 };
@@ -50,8 +50,9 @@ calendarDataInstance.createMonthAsWeeks(11, 2022);
 // Initialize Calendar
 // -----------------------------------------------------------------------------
 const calendarConfiguration: ICalendarConfiguration = {
+  initialDate: new Date('3022-12-01'),
   showWeekNumbers: true,
 };
 
 const calendar: Calendar = new Calendar('[data-js-calendar]', calendarConfiguration, calendarDataConfiguration);
-console.log(calendar);
+console.log('Calendar: ', calendar);

@@ -10,7 +10,8 @@ import {
 
 export interface ICalendarConfiguration {
   [key: string]: any;
-  showWeekNumbers?: boolean
+  showWeekNumbers?: boolean;
+  initialDate?: Date;
 }
 
 // interface HTMLTableCellElementCustom extends HTMLTableCellElement {
@@ -54,6 +55,7 @@ export class Calendar extends CalendarData {
 
   private calendarConfig: ICalendarConfiguration = {
     showWeekNumbers: false,
+    initialDate: this.currentDate,
   };
 
   constructor(
@@ -82,8 +84,10 @@ export class Calendar extends CalendarData {
     this.currentDate.setHours(0, 0, 0, 0);
     // this.calendarDataMonth = this.createMonthAsWeeks(this.currentDate.getMonth(), this.currentDate.getFullYear());
 
-    this.selectedMonthIndex = this.currentDate.getMonth();
-    this.selectedYear = this.currentDate.getFullYear();
+    this.selectedMonthIndex = this.calendarConfig.initialDate.getMonth();
+    this.selectedYear = this.calendarConfig.initialDate.getFullYear();
+    // this.selectedMonthIndex = this.currentDate.getMonth();
+    // this.selectedYear = this.currentDate.getFullYear();
 
     this.createCalendarCoreTemplate();
     this.createCalendarNavigation();
@@ -253,8 +257,10 @@ export class Calendar extends CalendarData {
 
   private createCalendarNavigationYearSelector(): HTMLSelectElement {
     const selectYear: HTMLSelectElement = document.createElement('select');
-    const yearsStart: number = this.currentDate.getFullYear() + 5;
-    const yearsEnd: number = yearsStart - 100;
+    const yearsStart: number = this.calendarConfig.initialDate.getFullYear() > this.currentDate.getFullYear() ?
+      this.calendarConfig.initialDate.getFullYear() + 5:
+      this.currentDate.getFullYear() + 5;
+    const yearsEnd: number = this.currentDate.getFullYear() - 100;
 
     for (let year: number = yearsStart; year >= yearsEnd; year--) {
       const tmpOption: HTMLOptionElement = document.createElement('option');

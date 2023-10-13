@@ -286,17 +286,33 @@ export class CalendarData {
 
     const weeksCount: number = Math.ceil(monthDaysWithPadding.length / weekDaysCount);
 
+    // for (let i=1; i<=weeksCount; i++) {
+    //   // It's used to properly calculate the week number
+    //   let daysOffset: number = 0;
+    //   const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
+    //   const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
+    //     daysOffset = index;
+    //     return !!day && day.monthIndex === monthIndex;
+    //   });
+
+    //   result.push({
+    //     weekNumber: this.weekNumber(weeksFirstDay.localeDate, daysOffset),
+    //     weekDays: daysChunk,
+    //   });
+    // }
+
     for (let i=1; i<=weeksCount; i++) {
       // It's used to properly calculate the week number
-      let daysOffset: number = 0;
+      // let daysOffset: number = 0;
       const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
-      const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
-        daysOffset = index;
-        return !!day && day.monthIndex === monthIndex;
-      });
+      // const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
+      //   daysOffset = index;
+      //   return !!day && day.monthIndex === monthIndex;
+      // });
+      const weekFirstAvailableDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay) => !!day);
 
       result.push({
-        weekNumber: this.weekNumber(weeksFirstDay.localeDate, daysOffset),
+        weekNumber: this.getWeekNumberFromDate(weekFirstAvailableDay.localeDate), // this.weekNumber(weeksFirstDay.localeDate, daysOffset),
         weekDays: daysChunk,
       });
     }
@@ -321,32 +337,50 @@ export class CalendarData {
    * @param {number} weekNumberAdjust It allow to increase the week number
    * @return {number} The number of the week for a given date
    */
-  private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.calendarDataConfig.weekNumberAdjust): number {
-    const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
-    const calculatedDateNumberOfDaysFromBeginning: number =
-      Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000)) - dayOffset;
-    let calculatedDateWeekNumber: number = Math.ceil((date.getDay() + 1 + calculatedDateNumberOfDaysFromBeginning - dayOffset) / 7);
+  // private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.calendarDataConfig.weekNumberAdjust): number {
+  //   const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
+  //   const calculatedDateNumberOfDaysFromBeginning: number =
+  //     Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000)) - dayOffset;
+  //   let calculatedDateWeekNumber: number = Math.ceil((date.getDay() + 1 + calculatedDateNumberOfDaysFromBeginning - dayOffset) / 7);
 
-    if (dayOffset > 0 && calculatedDateNumberOfDaysFromBeginning - dayOffset <=0 ) {
-      // Prior Year weeks count
-      const priorYearDateFirstJanuary: Date = new Date(date.getFullYear() - 1, 0, 1);
-      const priorYearDateLastDec: Date = new Date(date.getFullYear() - 1, 11, 31);
-      const priorYearDateNumberOfDaysFromBeginning: number =
-        Math.floor((priorYearDateLastDec.getTime() - priorYearDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
-      const priorYearWeeksCount: number = Math.ceil(priorYearDateNumberOfDaysFromBeginning / 7);
-      calculatedDateWeekNumber = priorYearWeeksCount;
+  //   if (dayOffset > 0 && calculatedDateNumberOfDaysFromBeginning - dayOffset <=0 ) {
+  //     // Prior Year weeks count
+  //     const priorYearDateFirstJanuary: Date = new Date(date.getFullYear() - 1, 0, 1);
+  //     const priorYearDateLastDec: Date = new Date(date.getFullYear() - 1, 11, 31);
+  //     const priorYearDateNumberOfDaysFromBeginning: number =
+  //       Math.floor((priorYearDateLastDec.getTime() - priorYearDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
+  //     const priorYearWeeksCount: number = Math.ceil(priorYearDateNumberOfDaysFromBeginning / 7);
+  //     calculatedDateWeekNumber = priorYearWeeksCount;
 
-      if (weekNumberAdjust) {
-        calculatedDateWeekNumber = 0;
-      }
-    }
+  //     if (weekNumberAdjust) {
+  //       calculatedDateWeekNumber = 0;
+  //     }
+  //   }
 
-    if (weekNumberAdjust) {
-      calculatedDateWeekNumber = calculatedDateWeekNumber + 1;
-    }
+  //   if (weekNumberAdjust) {
+  //     calculatedDateWeekNumber = calculatedDateWeekNumber + 1;
+  //   }
 
-    return calculatedDateWeekNumber;
+  //   return calculatedDateWeekNumber;
+  // }
+
+  // TODO:: It seems like the function needs to be adjusted, check dates:
+  //  01-12-2020 number of week for the last week
+  //  01-01-2021 number of week for the first week
+  // https://weeknumber.com/how-to/javascript
+  // ISO 8601:2004
+  private getWeekNumberFromDate(date: Date): number {
+    const tmpDate = new Date(date.getTime());
+    tmpDate.setHours(0, 0, 0, 0);
+    // Thursday in current week decides the year.
+    tmpDate.setDate(tmpDate.getDate() + 3 - (tmpDate.getDay() + 6) % 7);
+    // January 4 is always in week 1.
+    const week1: Date = new Date(tmpDate.getFullYear(), 0, 4);
+    // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+    return 1 + Math.round(((tmpDate.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
   }
+
+  // ----------------------------------------------------------------
 
   // Helpers
   // ---------------------------------------------------------------------------
