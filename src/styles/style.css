@@ -2,6 +2,10 @@
   background: rgb(255, 239, 205);
 }
 
+section {
+  margin: 4rem 0;
+}
+
 .calendar-main-container {
   display: inline-block;
   width: 400px;

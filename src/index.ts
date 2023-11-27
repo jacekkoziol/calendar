@@ -10,7 +10,42 @@ import {
 import {Calendar, ICalendarConfiguration} from './components/calendar';
 
 console.log('Works');
+// Check creating Calendar Data
+console.log('%c--START-------- Calendar Data Initialization Test', 'color: purple');
+const calendarDataInstance: CalendarData = new CalendarData();
+calendarDataInstance.createMonthAsWeeks(11, 2022);
+console.log('%c--END---------- Calendar Data Initialization Test', 'color: purple');
+console.log('\n\n\n\n');
 
+// Initialize Calendar Default
+// -----------------------------------------------------------------------------
+const calendar: Calendar = new Calendar('[data-js-calendar-default]');
+console.log('Calendar: ', calendar);
+console.log('\n\n\n\n');
+
+
+// Initialize Calendar Second
+// -----------------------------------------------------------------------------
+const calendarDataConfigurationSecond: ICalendarDataConfiguration = {
+  // dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
+  // dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
+  startWeekWithDay: 1,
+  fillWeekMissingDaysWithDaysFromAdjacentMonths: false,
+  weekNumberAdjust: false,
+};
+
+const calendarConfigurationSecond: ICalendarConfiguration = {
+  // initialDate: new Date('3022-12-01'),
+  showWeekNumbers: true,
+};
+
+const calendarSecond: Calendar = new Calendar('[data-js-calendar-second]', calendarConfigurationSecond, calendarDataConfigurationSecond);
+console.log('calendarSecond: ', calendarSecond);
+console.log('\n\n\n\n');
+
+
+// Initialize Calendar Second
+// -----------------------------------------------------------------------------
 export const CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL: ICalendarDataMonthsNamesDictionary = {
   0: {nameShort: 'Sty', nameFull: 'Styczeń'},
   1: {nameShort: 'Lut', nameFull: 'Luty'},
@@ -36,23 +71,19 @@ export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDi
   6: {nameShort: 'Sob', nameFull: 'Sobota'},
 };
 
-const calendarDataConfiguration: ICalendarDataConfiguration = {
+const calendarDataConfigurationPL: ICalendarDataConfiguration = {
   dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
-  startWeekWithDay: 1,
+  // startWeekWithDay: 0,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: true,
   weekNumberAdjust: false,
 };
 
-const calendarDataInstance: CalendarData = new CalendarData();
-calendarDataInstance.createMonthAsWeeks(11, 2022);
-
-// Initialize Calendar
-// -----------------------------------------------------------------------------
-const calendarConfiguration: ICalendarConfiguration = {
-  initialDate: new Date('3022-12-01'),
+const calendarConfigurationPL: ICalendarConfiguration = {
+  initialDate: new Date('2021-07-01'),
   showWeekNumbers: true,
 };
 
-const calendar: Calendar = new Calendar('[data-js-calendar]', calendarConfiguration, calendarDataConfiguration);
-console.log('Calendar: ', calendar);
+const calendarPL: Calendar = new Calendar('[data-js-calendar-pl]', calendarConfigurationPL, calendarDataConfigurationPL);
+console.log('calendarSecond: ', calendarPL);
+console.log('\n\n\n\n');

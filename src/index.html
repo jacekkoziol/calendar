@@ -13,11 +13,40 @@
 <body>
   <main>
     <h1>The Calendar - Vercel Preview</h1>
-    <p>Basic</p>
 
-    <div>
-      <div class="calendar-main-container" data-js-calendar></div>
-    </div>
+    <section>
+      <h2 class="prev-section__header">Default</h2>
+      <div class="prev-row">
+        <div class="prev-col">
+          <div class="calendar-main-container" data-js-calendar-default></div>
+        </div>
+        <div class="prev-col">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="prev-section__header">Weeks numbers, Monday as first day of the week</h2>
+      <div class="prev-row">
+        <div class="prev-col">
+          <div class="calendar-main-container" data-js-calendar-second></div>
+        </div>
+        <div class="prev-col">
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="prev-section__header">Polish translation, padding with Adjacent Months days, weeks numbers, set initial date</h2>
+      <div class="prev-row">
+        <div class="prev-col">
+          <div class="calendar-main-container" data-js-calendar-pl></div>
+        </div>
+        <div class="prev-col">
+        </div>
+      </div>
+    </section>
+
   </main>
 
   <!-- script src="bundle.js" defer></script -->

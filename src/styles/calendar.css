@@ -4,6 +4,10 @@
   --cal-gray-light: #ddd;
   --cal-dark: #444;
   --cal-week-no: #698c74;
+  --cal-week-today: #0059ff;
+  --cal-week-today-bg: #d7e5ff;
+  --cal-week-selected: #8e0dd8;
+  --cal-week-selected-bg: #e9c4ff;
 }
 
 .cal__Container {
@@ -27,18 +31,44 @@
 }
 
 .cal__MonthTableBody__td {
-  color: var(--cal-dark)
+  color: var(--cal-dark);
+  text-align: center;
+}
+
+.cal__MonthTableBody__td--week-no {
+  text-align: left;
 }
 
 .cal__MonthTableBody__td.is-for-other-month {
   color: var(--cal-gray)
 }
 
+/* Todays day */
+.cal__MonthTableBody__td.is-todays-day {
+  color: var(--cal-week-today)
+}
+
+.cal__MonthTableBody__td.is-todays-day span {
+  background: var(--cal-week-today-bg);
+}
+
+/* Selected day */
+.cal__MonthTableBody__td.is-selected {
+  color: var(--cal-week-selected)
+}
+
+.cal__MonthTableBody__td.is-selected span {
+  background: var(--cal-week-selected-bg);
+}
+
 .cal__MonthTableBody__td-span {
   pointer-events: none;
+  display: inline-block;
+  padding: 5px;
+  aspect-ratio: 1/1;
 }
 
 .cal__MonthTableBody__td-span--week-no{
   font-size: 11px;
-  color: var(--cal-week-no)
+  color: var(--cal-week-no);
 }

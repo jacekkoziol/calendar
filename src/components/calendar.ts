@@ -176,6 +176,7 @@ export class Calendar extends CalendarData {
 
         if (day) {
           tmpTd.classList.add(`cal__MonthTableBody__td--weekday-${day.dayOfWeek}`);
+          const isDayToday: boolean = Calendar.isDayToday(day);
           const isDayOtherMonth: boolean = day.monthIndex !== this.calendarDataMonth.monthIndex;
           const isDayPrevMonth: boolean =
             day.year < this.calendarDataMonth.year ||
@@ -197,6 +198,10 @@ export class Calendar extends CalendarData {
             if (isDayNextMonth) {
               tmpTd.classList.add('is-for-next-month');
             }
+          }
+
+          if (isDayToday) {
+            tmpTd.classList.add('is-todays-day');
           }
 
           const tmpSpan: HTMLSpanElement = document.createElement('span');
@@ -300,14 +305,16 @@ export class Calendar extends CalendarData {
   // Calendar Month Actions
   // ---------------------------------------------------------------------------
   private initCalendarMonthEventHandler(): void {
+    const selectedCssClass: string = 'is-selected';
+
     this.htmlCalendarMonth.addEventListener('click', (e: PointerEvent) => {
       const tmpDay: HTMLTableCellElement = this.getEventTarget(e) as HTMLTableCellElement;
       console.log(tmpDay);
 
       if (tmpDay.classList.contains('cal__MonthTableBody__td--weekday')) {
-        console.log('Allow return value');
-        console.log(tmpDay.calendarDataDay);
-        console.log(tmpDay.calendarDataDay.getDateWithCurrentTime());
+        console.info('%cAllow return value', 'color:green');
+        console.log('Day Data:', tmpDay.calendarDataDay);
+        console.log('Day Data Current Time:', tmpDay.calendarDataDay.getDateWithCurrentTime());
 
         this.selectedMonthIndex = tmpDay.calendarDataDay.monthIndex;
         this.selectedYear = tmpDay.calendarDataDay.year;
@@ -316,6 +323,12 @@ export class Calendar extends CalendarData {
         this.htmlCalendarNavigationYearSelect.value = String(this.selectedYear);
 
         // this.showMonth();
+        // Select day
+        this.htmlCalendarMonth.querySelectorAll('.cal__MonthTableBody__td--weekday').forEach((item: HTMLTableCellElement) => {
+          item.classList.remove(selectedCssClass);
+        });
+
+        tmpDay.classList.add(selectedCssClass);
       }
     }, false);
   }
@@ -348,4 +361,15 @@ export class Calendar extends CalendarData {
       return event.target;
     }
   }
+
+  static isDayToday(day: ICalendarDataDay): boolean {
+    const today: Date = new Date();
+    today.setHours(0);
+    today.setMinutes(0);
+    today.setSeconds(0);
+    today.setMilliseconds(0);
+    return day.dateIso === today.toISOString();
+  }
+
+  // static selectDay()
 }
