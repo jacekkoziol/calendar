@@ -208,6 +208,8 @@ export class Calendar extends CalendarData {
           tmpSpan.className = 'cal__MonthTableBody__td-span cal__MonthTableBody__td-span--weekday';
           tmpSpan.textContent = `${day.dayOfMonth}`;
           tmpTd.appendChild(tmpSpan);
+        } else {
+          tmpTd.classList.add('cal__MonthTableBody__td--weekday-empty');
         }
 
         row.appendChild(tmpTd);
@@ -310,6 +312,10 @@ export class Calendar extends CalendarData {
     this.htmlCalendarMonth.addEventListener('click', (e: PointerEvent) => {
       const tmpDay: HTMLTableCellElement = this.getEventTarget(e) as HTMLTableCellElement;
       console.log(tmpDay);
+
+      if (tmpDay.classList.contains('cal__MonthTableBody__td--weekday-empty')) {
+        return;
+      }
 
       if (tmpDay.classList.contains('cal__MonthTableBody__td--weekday')) {
         console.info('%cAllow return value', 'color:green');

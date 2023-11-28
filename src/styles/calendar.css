@@ -8,6 +8,7 @@
   --cal-week-today-bg: #d7e5ff;
   --cal-week-selected: #8e0dd8;
   --cal-week-selected-bg: #e9c4ff;
+  --cal-week-day-hover: #EFEFEF;
 }
 
 .cal__Container {
@@ -33,6 +34,10 @@
 .cal__MonthTableBody__td {
   color: var(--cal-dark);
   text-align: center;
+}
+
+.cal__MonthTableBody__td--weekday:not(.cal__MonthTableBody__td--weekday-empty):hover {
+  background: var(--cal-week-day-hover);
 }
 
 .cal__MonthTableBody__td--week-no {
