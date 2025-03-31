@@ -74,7 +74,7 @@ export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDi
 const calendarDataConfigurationPL: ICalendarDataConfiguration = {
   dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
-  startWeekWithDay: 2,
+  startWeekWithDay: 0,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: true,
   weekNumberAdjust: false,
 };
