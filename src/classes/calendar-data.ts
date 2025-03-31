@@ -63,7 +63,7 @@ export interface ICalendarDataConfiguration {
   dictionaryMonths?: ICalendarDataMonthsNamesDictionary;
   dictionaryWeekdays?: ICalendarDataWeekdaysDictionary;
   fillWeekMissingDaysWithDaysFromAdjacentMonths?: boolean;
-  weekNumberAdjust?: boolean;
+  // weekNumberAdjust?: boolean;
 }
 
 export interface ICalendarDataMonthsListItem {
@@ -152,7 +152,7 @@ export class CalendarData {
     dictionaryWeekdays: JSON.parse(JSON.stringify(CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY)),
     startWeekWithDay: 0,
     fillWeekMissingDaysWithDaysFromAdjacentMonths: false,
-    weekNumberAdjust: false,
+    // weekNumberAdjust: false,
   };
 
   protected monthsList: ICalendarDataMonthsListItem[] = [];
@@ -189,8 +189,8 @@ export class CalendarData {
     const paddingStartDaysCountNeeded: number = paddingStartDaysCheck < 0 ? 7 + paddingStartDaysCheck : paddingStartDaysCheck;
     const paddingEndDaysCountCheck: number = 7 - ((paddingStartDaysCountNeeded + monthDays.length) % 7);
     const paddingEndDaysCountNeeded: number = paddingEndDaysCountCheck >= 7 ? 0 : paddingEndDaysCountCheck;
-    let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), () => null);
-    let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), () => null);
+    let paddingStartDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingStartDaysCountNeeded), (): null => null);
+    let paddingEndDays: Array<ICalendarDataDay | null> = Array.from(new Array(paddingEndDaysCountNeeded), (): null => null);
 
     // Fill the first and last week of the month with days from previous and next month
     if (fillMissingDaysWithDaysFromAdjacentMonths) {
@@ -209,7 +209,7 @@ export class CalendarData {
       monthNumber: verifiedMonthIndex + 1,
       monthIndex: verifiedMonthIndex,
       year: verifiedYear,
-      weeks: this.splitMonthToWeeks(monthDaysWithPadding, verifiedMonthIndex),
+      weeks: this.splitMonthToWeeks(monthDaysWithPadding),
       days: monthDays,
       weekdaysOrder: this.getWeekdaysOrder(weekStartsFromDayIndex),
     };
@@ -277,42 +277,23 @@ export class CalendarData {
   /**
    * Split the month into weeks
    * @param {ICalendarDataDay[]} monthDaysWithPadding An array days data which should contain padding days
-   * @param {number} monthIndex The month index required to calculate the week number
    * @return {ICalendarDataWeek[]} An Array of weeks data
    */
-  private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[], monthIndex: number): ICalendarDataWeek[] {
+  private splitMonthToWeeks(monthDaysWithPadding: ICalendarDataDay[]): ICalendarDataWeek[] {
     const weekDaysCount: number = 7;
     const result: ICalendarDataWeek[] = [];
-
     const weeksCount: number = Math.ceil(monthDaysWithPadding.length / weekDaysCount);
 
-    // for (let i=1; i<=weeksCount; i++) {
-    //   // It's used to properly calculate the week number
-    //   let daysOffset: number = 0;
-    //   const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
-    //   const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
-    //     daysOffset = index;
-    //     return !!day && day.monthIndex === monthIndex;
-    //   });
-
-    //   result.push({
-    //     weekNumber: this.weekNumber(weeksFirstDay.localeDate, daysOffset),
-    //     weekDays: daysChunk,
-    //   });
-    // }
-
-    for (let i=1; i<=weeksCount; i++) {
+    for (let i=1; i <= weeksCount; i++) {
       // It's used to properly calculate the week number
-      // let daysOffset: number = 0;
       const daysChunk: ICalendarDataDay[] = monthDaysWithPadding.slice(i * weekDaysCount - weekDaysCount, i * weekDaysCount);
-      // const weeksFirstDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay, index: number) => {
-      //   daysOffset = index;
-      //   return !!day && day.monthIndex === monthIndex;
-      // });
-      const weekFirstAvailableDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay) => !!day);
+      // const weekFirstAvailableDay: ICalendarDataDay = daysChunk.find((day: ICalendarDataDay) => !!day);
 
       result.push({
-        weekNumber: this.getWeekNumberFromDate(weekFirstAvailableDay.localeDate), // this.weekNumber(weeksFirstDay.localeDate, daysOffset),
+        // weekNumber: this.getWeekNumberFromDate(
+        //   weekFirstAvailableDay.localeDate,
+        // ),
+        weekNumber: this.getWeekNumberForWeekDays(daysChunk),
         weekDays: daysChunk,
       });
     }
@@ -329,58 +310,68 @@ export class CalendarData {
     return new Date(year, monthIndex + 1, 0).getDate();
   }
 
-  /**
-   *
-   * @param {Date} date The Date for which the week number should by calculated
-   * @param {number} dayOffset Since not always there is available first day of the week,
-   * or first day of the week belongs to the previous month, we need to consider the offset during calculation
-   * @param {number} weekNumberAdjust It allow to increase the week number
-   * @return {number} The number of the week for a given date
-   */
-  // private weekNumber(date: Date, dayOffset: number = 0, weekNumberAdjust: boolean = this.calendarDataConfig.weekNumberAdjust): number {
-  //   const calculatedDateFirstJanuary: Date = new Date(date.getFullYear(), 0, 1);
-  //   const calculatedDateNumberOfDaysFromBeginning: number =
-  //     Math.floor((date.getTime() - calculatedDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000)) - dayOffset;
-  //   let calculatedDateWeekNumber: number = Math.ceil((date.getDay() + 1 + calculatedDateNumberOfDaysFromBeginning - dayOffset) / 7);
-
-  //   if (dayOffset > 0 && calculatedDateNumberOfDaysFromBeginning - dayOffset <=0 ) {
-  //     // Prior Year weeks count
-  //     const priorYearDateFirstJanuary: Date = new Date(date.getFullYear() - 1, 0, 1);
-  //     const priorYearDateLastDec: Date = new Date(date.getFullYear() - 1, 11, 31);
-  //     const priorYearDateNumberOfDaysFromBeginning: number =
-  //       Math.floor((priorYearDateLastDec.getTime() - priorYearDateFirstJanuary.getTime()) / (24 * 60 * 60 * 1000));
-  //     const priorYearWeeksCount: number = Math.ceil(priorYearDateNumberOfDaysFromBeginning / 7);
-  //     calculatedDateWeekNumber = priorYearWeeksCount;
-
-  //     if (weekNumberAdjust) {
-  //       calculatedDateWeekNumber = 0;
-  //     }
-  //   }
-
-  //   if (weekNumberAdjust) {
-  //     calculatedDateWeekNumber = calculatedDateWeekNumber + 1;
-  //   }
-
-  //   return calculatedDateWeekNumber;
-  // }
+  // -----------------------
+  private getWeekNumberForWeekDays(days: ICalendarDataDay[]): number {
+    const firstDayIndicatingWeekNumber = days.find((day: ICalendarDataDay) => !!day && day?.dayOfWeek === 4);
+    const dayUsedForWeekNumber = firstDayIndicatingWeekNumber || days.find((day: ICalendarDataDay) => !!day);
+    return this.getWeekNumberFromDate(dayUsedForWeekNumber.localeDate);
+  }
 
   // TODO:: It seems like the function needs to be adjusted, check dates:
   //  01-12-2020 number of week for the last week
   //  01-01-2021 number of week for the first week
   // https://weeknumber.com/how-to/javascript
   // ISO 8601:2004
-  private getWeekNumberFromDate(date: Date): number {
-    const tmpDate = new Date(date.getTime());
-    tmpDate.setHours(0, 0, 0, 0);
-    // Thursday in current week decides the year.
-    tmpDate.setDate(tmpDate.getDate() + 3 - (tmpDate.getDay() + 6) % 7);
-    // January 4 is always in week 1.
-    const week1: Date = new Date(tmpDate.getFullYear(), 0, 4);
-    // Adjust to Thursday in week 1 and count number of weeks from date to week1.
-    return 1 + Math.round(((tmpDate.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
-  }
+  // private getWeekNumberFromDate(date: Date): number {
+  //   const tmpDate = new Date(date.getTime());
+  //   tmpDate.setHours(0, 0, 0, 0);
+  //   // Thursday in current week decides the year.
+  //   tmpDate.setDate(tmpDate.getDate() + 3 - (tmpDate.getDay() + 6) % 7);
+  //   // January 4 is always in week 1.
+  //   const week1: Date = new Date(tmpDate.getFullYear(), 0, 4);
+  //   // Adjust to Thursday in week 1 and count number of weeks from date to week1.
+  //   return 1 + Math.round(((tmpDate.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+  // }
 
-  // ----------------------------------------------------------------
+
+  /**
+   * Calculates the week number in the year for a given date according to ISO 8601 standard.
+   *
+   * @param {Date} date - Input date
+   * @return {number} Week number (1-53)
+   */
+  private getWeekNumberFromDate(date: Date): number {
+    // Create a copy of the input date
+    const dateCopy = new Date(date.getTime());
+
+    // Reset time to midnight
+    dateCopy.setHours(0, 0, 0, 0);
+
+    // Convert day of week to format where Monday = 0, Sunday = 6
+    const dayOfWeek = (dateCopy.getDay() + 6) % 7;
+
+    // Set date to Thursday of the current week
+    // (Monday + 3 = Thursday)
+    dateCopy.setDate(dateCopy.getDate() - dayOfWeek + 3);
+
+    // Create January 4th date for the year from our date
+    const january4th = new Date(dateCopy.getFullYear(), 0, 4);
+
+    // Convert day of week for January 4th to format where Monday = 0
+    const january4thDayOfWeek = (january4th.getDay() + 6) % 7;
+
+    // Set date to Thursday of the first week of the year
+    // (Monday + 3 = Thursday)
+    const firstThursday = new Date(january4th.getTime());
+    firstThursday.setDate(january4th.getDate() - january4thDayOfWeek + 3);
+
+    // Calculate difference in days
+    const daysDiff = (dateCopy.getTime() - firstThursday.getTime()) / (24 * 60 * 60 * 1000);
+
+    // Calculate difference in weeks and add 1
+    // (because the first week is number 1, not 0)
+    return Math.round(daysDiff / 7) + 1;
+  }
 
   // Helpers
   // ---------------------------------------------------------------------------

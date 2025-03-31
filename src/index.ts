@@ -29,13 +29,13 @@ console.log('\n\n\n\n');
 const calendarDataConfigurationSecond: ICalendarDataConfiguration = {
   // dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   // dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
-  startWeekWithDay: 1,
+  startWeekWithDay: 0,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: false,
   weekNumberAdjust: false,
 };
 
 const calendarConfigurationSecond: ICalendarConfiguration = {
-  // initialDate: new Date('3022-12-01'),
+  initialDate: new Date('2025-01-01'),
   showWeekNumbers: true,
 };
 
@@ -74,13 +74,13 @@ export const CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL: ICalendarDataWeekdaysDi
 const calendarDataConfigurationPL: ICalendarDataConfiguration = {
   dictionaryMonths: CALENDAR_DATA_MONTHS_NAMES_DICTIONARY_PL,
   dictionaryWeekdays: CALENDAR_DATA_WEEKDAYS_NAMES_DICTIONARY_PL,
-  // startWeekWithDay: 0,
+  startWeekWithDay: 2,
   fillWeekMissingDaysWithDaysFromAdjacentMonths: true,
   weekNumberAdjust: false,
 };
 
 const calendarConfigurationPL: ICalendarConfiguration = {
-  initialDate: new Date('2021-07-01'),
+  initialDate: new Date('2025-01-01'), // new Date('2021-07-01')
   showWeekNumbers: true,
 };
 
